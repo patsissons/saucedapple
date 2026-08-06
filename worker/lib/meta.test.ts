@@ -35,7 +35,7 @@ describe("injectArticleMeta", () => {
 
   it("rewrites title and og tags with escaped article values", () => {
     expect(html).toContain(
-      "<title>Why Chili's Isn't Going &quot;All In&quot; &amp; More · sauced apple</title>",
+      "<title>Why Chili's Isn't Going &quot;All In&quot; &amp; More · Sauced Apple</title>",
     );
     expect(html).toContain(
       'property="og:title" content="Why Chili\'s Isn\'t Going &quot;All In&quot; &amp; More — The Wall Street Journal"',
@@ -58,8 +58,8 @@ describe("injectArticleMeta", () => {
   });
 
   it("leaves no default og values behind except site_name and card type", () => {
-    expect(html).not.toContain('content="sauced apple — read Apple News');
-    expect(html).toContain('property="og:site_name" content="sauced apple"');
+    expect(html).not.toContain('content="Sauced Apple — Read Apple News');
+    expect(html).toContain('property="og:site_name" content="Sauced Apple"');
     expect(html).toContain('name="twitter:card" content="summary_large_image"');
   });
 
@@ -77,7 +77,7 @@ describe("injectArticleMeta", () => {
         PERMALINK,
       ),
     );
-    expect(sparse).toContain('property="og:title" content="sauced apple"');
+    expect(sparse).toContain('property="og:title" content="Sauced Apple"');
     expect(sparse).toContain(
       'property="og:image" content="https://saucedapple.com/og-image.png"',
     );

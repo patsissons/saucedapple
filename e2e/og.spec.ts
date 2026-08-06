@@ -12,7 +12,7 @@ test("the root page serves the site-default OpenGraph tags", async ({
   request,
 }) => {
   const html = flat(await (await request.get("/")).text());
-  expect(html).toContain('property="og:title" content="sauced apple"');
+  expect(html).toContain('property="og:title" content="Sauced Apple"');
   expect(html).toContain('property="og:type" content="website"');
 });
 
@@ -37,6 +37,6 @@ test("an invalid permalink falls back to the site-default tags", async ({
   const html = flat(
     await (await request.get("/?url=https://example.com/nope")).text(),
   );
-  expect(html).toContain('property="og:title" content="sauced apple"');
+  expect(html).toContain('property="og:title" content="Sauced Apple"');
   expect(html).toContain('property="og:type" content="website"');
 });

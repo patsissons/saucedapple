@@ -10,12 +10,13 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "validate:quick": "pnpm format:check && pnpm typecheck && pnpm lint && pnpm test",
-    "validate": "pnpm validate:quick",
+    "validate": "pnpm validate:quick && pnpm test:e2e",
     "format-and-validate": "pnpm format && pnpm validate"
   },
   "dependencies": {

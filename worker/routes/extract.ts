@@ -3,11 +3,7 @@ import { parseAppleNewsUrl } from "../../shared/apple-news-url";
 import type { Env } from "../cloudflare";
 import { cacheGet, cachePut } from "../lib/cache";
 import { errorResponse } from "../lib/errors";
-import {
-  isBlockedStatus,
-  looksPaywalled,
-  MIN_TEXT_LENGTH,
-} from "../lib/extract/detect";
+import { isBlockedStatus, MIN_TEXT_LENGTH } from "../lib/extract/detect";
 import { extractArticle, type ExtractedArticle } from "../lib/extract/extract";
 import { fetchWithTimeout, readTextCapped } from "../lib/http";
 import { resolveArticle, type Deps } from "../lib/resolve-article";
@@ -36,8 +32,6 @@ async function attemptExtraction(
   if (isBlockedStatus(response.status) || !response.ok) return null;
 
   const html = await readTextCapped(response, MAX_BODY_BYTES);
-  if (looksPaywalled(html)) return null;
-
   const article = extractArticle(html, response.url || url);
   if (!article || article.textLength < MIN_TEXT_LENGTH) return null;
 

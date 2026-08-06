@@ -29,7 +29,7 @@ export default function App() {
             sauced <span className="text-red-500">apple</span>
           </h1>
           <p className="text-muted-foreground mt-2">
-            read Apple News links without a subscription
+            Read Apple News links without a subscription
           </p>
         </header>
 

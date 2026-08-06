@@ -40,7 +40,7 @@ describe("App", () => {
       screen.getByRole("heading", { name: /sauced\s+apple/i }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Apple News link")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "sauce it" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Sauce it!" })).toBeDisabled();
   });
 
   it("resolves a submitted link and shows the article card with links", async () => {
@@ -49,7 +49,7 @@ describe("App", () => {
     render(<App />);
 
     await user.type(screen.getByLabelText("Apple News link"), ARTICLE_URL);
-    await user.click(screen.getByRole("button", { name: "sauce it" }));
+    await user.click(screen.getByRole("button", { name: "Sauce it!" }));
 
     expect(
       await screen.findByText("How Cider Makers Reinvented an Industry"),
@@ -80,7 +80,7 @@ describe("App", () => {
       screen.getByLabelText("Apple News link"),
       "https://example.com/story",
     );
-    await user.click(screen.getByRole("button", { name: "sauce it" }));
+    await user.click(screen.getByRole("button", { name: "Sauce it!" }));
 
     expect(
       await screen.findByText("Not an Apple News link"),

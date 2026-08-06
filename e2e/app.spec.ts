@@ -12,7 +12,7 @@ test("pasting a link shows the article card, links, and a permalink", async ({
   ).toBeVisible();
 
   await page.getByLabel("Apple News link").fill(FREE_URL);
-  await page.getByRole("button", { name: "sauce it" }).click();
+  await page.getByRole("button", { name: "Sauce it!" }).click();
 
   await expect(
     page.getByText("How Cider Makers Reinvented an Industry"),
@@ -45,7 +45,7 @@ test("the reader view loads the extracted transcript", async ({ page }) => {
 test("an invalid link shows an inline error", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Apple News link").fill("https://example.com/story");
-  await page.getByRole("button", { name: "sauce it" }).click();
+  await page.getByRole("button", { name: "Sauce it!" }).click();
 
   await expect(page.getByText("Not an Apple News link")).toBeVisible();
 });

@@ -12,6 +12,12 @@
   "observability": {
     "enabled": true,
   },
+  // workers.dev preview URL stays enabled as a pre-DNS smoke-test target.
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "saucedapple.com", "custom_domain": true },
+    { "pattern": "www.saucedapple.com", "custom_domain": true },
+  ],
   "env": {
     // Hermetic e2e: point upstream origins at the local mock server.
     "e2e": {

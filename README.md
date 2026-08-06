@@ -63,6 +63,22 @@ pnpm exec playwright install chromium # browsers for the e2e suite
   mock of apple.news/publisher/Wayback; the Worker points at it via the
   wrangler `e2e` environment (`CLOUDFLARE_ENV=e2e`).
 
+## Deploying
+
+The app deploys as a single Cloudflare Worker (SPA assets + API) to
+**saucedapple.com** (custom domains are declared in `wrangler.jsonc` and
+provisioned on first deploy — the zone must exist on the Cloudflare
+account).
+
+```sh
+pnpm exec wrangler login   # once
+pnpm run deploy            # build + wrangler deploy
+```
+
+Note it must be `pnpm run deploy` — bare `pnpm deploy` is pnpm's built-in
+workspace command, not this script. No secrets or paid services are
+required; everything runs on the Workers free tier.
+
 ## Testing notes
 
 - Vitest runs with globals **off** — tests import `describe`/`it`/`expect`

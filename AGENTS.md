@@ -44,6 +44,12 @@ with ESLint, formatted with Prettier.
 - Parsing fixtures in `worker/lib/__fixtures__/` are recorded from the live
   site (prettier-ignored) — don't reformat or hand-edit the recorded ones.
 
+## Deploying
+
+`pnpm run deploy` (NOT bare `pnpm deploy` — that's pnpm's workspace
+command). Requires `wrangler login`. Custom domains saucedapple.com /
+www.saucedapple.com are declared in wrangler.jsonc.
+
 ## After making changes from a prompt, BEFORE committing
 
 1. **Author new tests** covering the changes being made.

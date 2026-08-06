@@ -49,7 +49,8 @@ export function injectArticleMeta(
   const description =
     article.description ??
     `Free ways to read this Apple News story${article.publisher ? ` from ${article.publisher}` : ""}.`;
-  const image = article.image ?? "https://saucedapple.com/og-image.png";
+  const image =
+    article.image ?? "https://saucedapple.com/og-image.png?v=20260806";
 
   let out = html;
   out = setTitle(out, `${title} · Sauced Apple`);

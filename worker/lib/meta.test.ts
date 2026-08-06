@@ -79,7 +79,7 @@ describe("injectArticleMeta", () => {
     );
     expect(sparse).toContain('property="og:title" content="Sauced Apple"');
     expect(sparse).toContain(
-      'property="og:image" content="https://saucedapple.com/og-image.png"',
+      'property="og:image" content="https://saucedapple.com/og-image.png?v=20260806"',
     );
     expect(sparse).toContain(
       'content="Free ways to read this Apple News story."',

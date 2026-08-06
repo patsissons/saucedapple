@@ -71,10 +71,13 @@ to `main`:
 - **validate** — `pnpm validate` (format check, typecheck, lint, unit tests,
   hermetic Playwright e2e) plus a production build. Required to merge:
   `main` is protected, so changes land via PR with this check green.
-- **deploy** — on `main` pushes only, after validate passes: builds and runs
-  `wrangler deploy`, publishing to saucedapple.com. Requires the
-  `CLOUDFLARE_API_TOKEN` repo secret (a Cloudflare API token created from
-  the "Edit Cloudflare Workers" template; set with
+- **Deploy** (`.github/workflows/deploy.yml`) — builds and runs
+  `wrangler deploy`, publishing to saucedapple.com. CI calls it
+  automatically after validate passes on `main` pushes; it can also be
+  dispatched manually (Actions → Deploy → Run workflow), optionally with a
+  commit SHA — the rollback path: `gh workflow run deploy.yml -f sha=<sha>`.
+  Requires the `CLOUDFLARE_API_TOKEN` repo secret (a Cloudflare API token
+  created from the "Edit Cloudflare Workers" template; set with
   `gh secret set CLOUDFLARE_API_TOKEN`).
 
 ## Deploying

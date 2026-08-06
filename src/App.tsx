@@ -30,7 +30,8 @@ export default function App() {
         <header className="flex flex-col items-center text-center">
           <Logo className="mb-3 size-20" />
           <h1 className="text-4xl font-bold tracking-tight">
-            sauced <span className="text-red-500">apple</span>
+            <span className="text-amber-500">Sauced</span>{" "}
+            <span className="text-red-500">Apple</span>
           </h1>
           <p className="text-muted-foreground mt-2">
             Read Apple News links without a subscription

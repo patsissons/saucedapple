@@ -4,10 +4,14 @@
   "main": "worker/index.ts",
   "compatibility_date": "2026-08-01",
   "assets": {
+    // Exposes the static assets to the worker (env.ASSETS) so the root
+    // handler can serve index.html with rewritten OpenGraph tags.
+    "binding": "ASSETS",
     // Serve index.html for any non-asset path so /?url=... permalinks work.
     "not_found_handling": "single-page-application",
-    // Only /api/* is handled by the worker; everything else is static.
-    "run_worker_first": ["/api/*"],
+    // /api/* is the API; "/" goes through the worker so ?url= permalinks
+    // get article-specific OpenGraph tags. Everything else is static.
+    "run_worker_first": ["/api/*", "/"],
   },
   "observability": {
     "enabled": true,
@@ -21,6 +25,8 @@
   "env": {
     // Hermetic e2e: point upstream origins at the local mock server.
     "e2e": {
+      // Never inherit the production custom domains.
+      "routes": [],
       "vars": {
         "APPLE_NEWS_ORIGIN": "http://127.0.0.1:8799/apple-news",
         "WAYBACK_API_ORIGIN": "http://127.0.0.1:8799/wayback",

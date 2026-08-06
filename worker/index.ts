@@ -3,6 +3,7 @@ import { getDefaultCache } from "./lib/cache";
 import { errorResponse } from "./lib/errors";
 import { handleExtract } from "./routes/extract";
 import { handleResolve, type Deps } from "./routes/resolve";
+import { handleRoot } from "./routes/root";
 
 export default {
   async fetch(
@@ -19,6 +20,8 @@ export default {
     };
 
     switch (pathname) {
+      case "/":
+        return handleRoot(request, env, deps);
       case "/api/health":
         return Response.json({ ok: true });
       case "/api/resolve":

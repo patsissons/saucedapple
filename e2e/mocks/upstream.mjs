@@ -10,6 +10,9 @@ const ORIGIN = `http://127.0.0.1:${PORT}`;
 // Ids must satisfy the app's id regex: ^A[A-Za-z0-9_-]{10,40}$
 export const FREE_ID = "Ae2eFreeArticle0testXX";
 export const EXCLUSIVE_ID = "Ae2eExclusive0testXXXX";
+// Resolves to a publisher page too thin to extract and with no Wayback
+// snapshot, so /api/extract fails — exercising the client-side reader fallback.
+export const PAYWALL_ID = "Ae2ePaywall00testXXXX";
 
 const publisherArticle = readFileSync(
   new URL(
@@ -41,6 +44,18 @@ function appleNewsExclusive() {
 </head><body></body></html>`;
 }
 
+function appleNewsPaywall() {
+  return `<!DOCTYPE html>
+<html><head>
+<script>
+  function redirectToUrl(url) {}
+  redirectToUrl("${ORIGIN}/publisher/paywalled");
+</script>
+<meta property="og:title" content="A Paywalled Investigation — The Ledger" />
+<meta property="og:description" content="Members only." />
+</head><body></body></html>`;
+}
+
 function appleNewsNotFound() {
   return `<!DOCTYPE html>
 <html><head>
@@ -69,11 +84,21 @@ const server = createServer((req, res) => {
     const id = url.pathname.split("/")[2] ?? "";
     if (id === FREE_ID) return send(200, appleNewsArticle());
     if (id === EXCLUSIVE_ID) return send(200, appleNewsExclusive());
+    if (id === PAYWALL_ID) return send(200, appleNewsPaywall());
     return send(404, appleNewsNotFound());
   }
 
   if (url.pathname === "/publisher/article") {
     return send(200, publisherArticle);
+  }
+  if (url.pathname === "/publisher/paywalled") {
+    // Too little text to clear MIN_TEXT_LENGTH — extraction fails here.
+    return send(
+      200,
+      "<!DOCTYPE html><html><head><title>Paywalled</title></head>" +
+        "<body><article><h1>A Paywalled Investigation</h1>" +
+        "<p>Subscribe to continue reading.</p></article></body></html>",
+    );
   }
   if (url.pathname === "/publisher/hero.jpg") {
     res.writeHead(200, { "content-type": "image/gif" });

@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const FREE_URL = "https://apple.news/Ae2eFreeArticle0testXX";
 const EXCLUSIVE_URL = "https://apple.news/Ae2eExclusive0testXXXX";
+const PAYWALL_URL = "https://apple.news/Ae2ePaywall00testXXXX";
 
 test("pasting a link shows the article card, links, and a permalink", async ({
   page,
@@ -40,6 +41,33 @@ test("the reader view loads the extracted transcript", async ({ page }) => {
     page.getByText(/the cider industry moved at the speed/i),
   ).toBeVisible();
   await expect(page.getByText(/extracted from/i)).toBeVisible();
+});
+
+test("falls back to the client-side reader when extraction fails", async ({
+  page,
+}) => {
+  // Intercept the browser's call to r.jina.ai so the suite stays hermetic.
+  await page.route("https://r.jina.ai/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "text/plain",
+      body:
+        "Title: A Paywalled Investigation\n\n" +
+        "URL Source: https://publisher.test/paywalled\n\n" +
+        "Markdown Content:\n# A Paywalled Investigation\n\n" +
+        "The reader recovered the full story from your own browser. ".repeat(
+          20,
+        ),
+    }),
+  );
+
+  await page.goto(`/?url=${encodeURIComponent(PAYWALL_URL)}`);
+  await page.getByRole("button", { name: /read transcript/i }).click();
+
+  await expect(
+    page.getByText(/the reader recovered the full story/i),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /reader view/i })).toBeVisible();
 });
 
 test("an invalid link shows an inline error", async ({ page }) => {

@@ -72,9 +72,19 @@ with ESLint, formatted with Prettier.
 - Do NOT pre-reject pages on the `isAccessibleForFree: false` JSON-LD
   marker — many sites declare it while shipping full text for SEO. The
   extracted-text-length gate (MIN_TEXT_LENGTH) is the real paywall signal.
-- If WSJ-class transcripts are ever wanted: Cloudflare Browser Rendering
-  API (has a free allotment) or archive.today mirror rotation are the v2
-  candidates. Both were deliberately deferred.
+- **Client-side reader fallback (shipped)**: when `/api/extract` fails, the
+  browser calls r.jina.ai to render + extract the article from the user's own
+  IP (`src/lib/jina.ts`, wired into `src/components/reader-view.tsx`). A
+  research program (see the `research/` dir / PR) measured this lifting overall
+  coverage 50%→86% and hard paywalls 0%→67% — it cracks FT and The Economist.
+  **WSJ still resists it** (returns a stub), so WSJ remains archive.today-link
+  only. jina is a best-effort third party: always degrade to the alt-links,
+  never make it a hard dependency, and keep the fetch client-side (it must not
+  move to the Worker — the point is the residential IP + zero CPU).
+- If WSJ specifically is ever wanted: Cloudflare Browser Rendering inherits the
+  Cloudflare-IP block (it runs on CF infra), so it likely won't help; the
+  archive.today link (human-clicked) is the realistic path. Deliberately not
+  pursued.
 
 ## Shipping changes
 

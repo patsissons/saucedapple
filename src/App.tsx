@@ -68,7 +68,10 @@ export default function App() {
             {state.article.canonicalUrl && (
               <>
                 <AltLinks article={state.article} />
-                <ReaderView appleNewsUrl={state.article.appleNewsUrl} />
+                <ReaderView
+                  appleNewsUrl={state.article.appleNewsUrl}
+                  canonicalUrl={state.article.canonicalUrl}
+                />
               </>
             )}
           </div>

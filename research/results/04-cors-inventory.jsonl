@@ -1,0 +1,8 @@
+{"probeId":"P4-cors","corpusId":"wayback-available","class":"A","route":"browser-fetch","ok":true,"httpStatus":200,"bytes":48,"notes":"gives snapshot URL only (not content)","ts":"2026-08-06T20:47:12.802Z"}
+{"probeId":"P4-cors","corpusId":"wayback-snapshot-content","class":"A","route":"browser-fetch","ok":false,"httpStatus":0,"bytes":0,"error":"Failed to fetch","notes":"KEY: reading archived article text in-browser","ts":"2026-08-06T20:47:17.986Z"}
+{"probeId":"P4-cors","corpusId":"wayback-cdx","class":"A","route":"browser-fetch","ok":false,"httpStatus":0,"bytes":0,"error":"Failed to fetch","notes":"client-side smart snapshot selection","ts":"2026-08-06T20:47:18.724Z"}
+{"probeId":"P4-cors","corpusId":"google-news-rss","class":"A","route":"browser-fetch","ok":false,"httpStatus":0,"bytes":0,"error":"Failed to fetch","notes":"same-story discovery in-browser","ts":"2026-08-06T20:47:48.465Z"}
+{"probeId":"P4-cors","corpusId":"hn-algolia","class":"A","route":"browser-fetch","ok":true,"httpStatus":200,"bytes":33346,"notes":"community archive-link mining in-browser","ts":"2026-08-06T20:47:48.543Z"}
+{"probeId":"P4-cors","corpusId":"reddit-json","class":"A","route":"browser-fetch","ok":false,"httpStatus":0,"bytes":0,"error":"Failed to fetch","notes":"community mining in-browser","ts":"2026-08-06T20:47:48.838Z"}
+{"probeId":"P4-cors","corpusId":"jina-reader","class":"A","route":"browser-fetch","ok":true,"httpStatus":200,"bytes":20957,"notes":"KEY: full extraction in-browser, residential IP, 0 Worker CPU","ts":"2026-08-06T20:47:48.950Z"}
+{"probeId":"P4-cors","corpusId":"arquivo-cdx","class":"A","route":"browser-fetch","ok":true,"httpStatus":200,"bytes":307,"notes":"archive federation in-browser","ts":"2026-08-06T20:47:49.832Z"}

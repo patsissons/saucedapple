@@ -128,16 +128,16 @@ Worker (Phase 3.5). This is an open question flagged for the report.
 
 | Probe | Question | Status |
 | --- | --- | --- |
-| P0 baseline | Current pipeline coverage per class | ✅ done |
-| P1 apple-native | Free full text via `news-edge.apple.com` / embedded ANF JSON? | ⏳ |
-| P2 structured-data | JSON-LD `articleBody` / `__NEXT_DATA__` / CMS APIs? | ⏳ |
-| P3 wayback-cdx | Do date-aware multi-snapshot picks beat one availability call? | ⏳ |
-| P4 cors-inventory | Which upstreams can the **browser** fetch directly? | ⏳ |
-| P5 syndication | Wire/syndicated copies open on Yahoo/MSN/AOL/regional? | ⏳ |
-| P6 same-story | Google News / Bing News / DDG for other coverage | ⏳ |
-| P7 community | HN Algolia / Reddit URL search → archive links | ⏳ |
-| P8 archive-fed | Arquivo.pt / LoC / UK Web Archive federation | ⏳ |
-| P9 browser-render | Cloudflare Browser Rendering (10 min/day) on class C | ⏳ |
-| P10 archive-today | Browser-only archive.today (≤10 requests, manual) | ⏳ |
-| P11 jina-reader | r.jina.ai free reader hit rate + latency | ⏳ |
-| P12 client-ai | Chrome built-in AI / WebLLM feasibility | ⏳ |
+| P0 baseline | Current pipeline coverage per class | ✅ A80/B50/C0 |
+| P1 apple-native | Free full text via `news-edge.apple.com` / embedded ANF JSON? | ❌ DROP (0/56) |
+| P2 structured-data | JSON-LD `articleBody` / `__NEXT_DATA__` / CMS APIs? | ⚠️ PARK (0 recovery; CPU win) |
+| P3 wayback-cdx | Do date-aware multi-snapshot picks beat one availability call? | ⚠️ PARK (untestable on fresh corpus) |
+| P4 cors-inventory | Which upstreams can the **browser** fetch directly? | ✅ jina/HN/Arquivo open; Wayback closed |
+| P5 syndication | Wire/syndicated copies open on Yahoo/MSN/AOL/regional? | ⚠️ PARK (superseded by jina) |
+| P6 same-story | Google News for other coverage | 🔶 PROTOTYPE (21% ≥3 outlets) |
+| P7 community | HN Algolia / Reddit URL search → archive links | ⚠️ PARK (low yield; invariant-safe) |
+| P8 archive-fed | Arquivo.pt / UK Web Archive federation | 🔶 PROTOTYPE (Arquivo 37%, browser-readable) |
+| P9 browser-render | Cloudflare Browser Rendering (10 min/day) on class C | ⏳ deploy step |
+| P10 archive-today | Browser-only archive.today (≤10 requests, manual) | ⏳ deploy step |
+| P11 jina-reader | r.jina.ai free reader hit rate + latency | ✅ **SHIP** (C 0→67%, client-side) |
+| P12 client-ai | Chrome built-in AI / WebLLM feasibility | 🔶 PROTOTYPE (post-processing only) |

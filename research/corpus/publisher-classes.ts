@@ -7,7 +7,9 @@
 //   D News+ excl.  - no publisher website at all (assigned only via resolve)
 import type { CorpusClass } from "../lib/metrics.ts";
 
-const CLASS_A = [
+// Exported so P5 (syndication mirror hunt) can reuse this as its list of
+// known-open hosts that are safe to fetch as mirror candidates.
+export const CLASS_A = [
   "apnews.com",
   "reuters.com",
   "npr.org",

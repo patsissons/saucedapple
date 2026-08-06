@@ -37,3 +37,11 @@ pnpm exec playwright install chromium # browsers for the e2e suite
 - `vitest.setup.ts` registers Testing Library's `cleanup()` in an `afterEach`
   because the automatic cleanup only self-registers when test globals exist.
 - Unit tests live next to the code in `src/`; e2e tests live in `e2e/`.
+
+## TypeScript setup
+
+Type checking uses the native TypeScript 7 compiler (`@typescript/native`
+alias → `typescript@7`), while the `typescript` package name is aliased to
+`@typescript/typescript6` so tools that need the TS 6 JS API (currently
+typescript-eslint) keep working. This is the side-by-side arrangement from
+the official TypeScript 7 release notes; see AGENTS.md before changing it.

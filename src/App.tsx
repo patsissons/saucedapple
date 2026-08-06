@@ -1,5 +1,6 @@
 import { AlertCircle } from "lucide-react";
 import { AltLinks } from "@/components/alt-links";
+import { Logo } from "@/components/logo";
 import { ArticleCard } from "@/components/article-card";
 import { ReaderView } from "@/components/reader-view";
 import { UrlForm } from "@/components/url-form";
@@ -20,7 +21,8 @@ export default function App() {
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col px-4">
       <main className="flex flex-1 flex-col items-center justify-center gap-6 py-12">
-        <header className="text-center">
+        <header className="flex flex-col items-center text-center">
+          <Logo className="mb-3 size-20" />
           <h1 className="text-4xl font-bold tracking-tight">
             sauced <span className="text-red-500">apple</span>
           </h1>

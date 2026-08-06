@@ -22,3 +22,6 @@ test-results/
 .env
 .env.*
 !.env.example
+
+# Local Cloudflare dev state
+.wrangler/

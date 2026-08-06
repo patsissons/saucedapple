@@ -137,7 +137,7 @@ Worker (Phase 3.5). This is an open question flagged for the report.
 | P6 same-story | Google News for other coverage | 🔶 PROTOTYPE (21% ≥3 outlets) |
 | P7 community | HN Algolia / Reddit URL search → archive links | ⚠️ PARK (low yield; invariant-safe) |
 | P8 archive-fed | Arquivo.pt / UK Web Archive federation | 🔶 PROTOTYPE (Arquivo 37%, browser-readable) |
-| P9 browser-render | Cloudflare Browser Rendering (10 min/day) on class C | ⏳ deploy step |
-| P10 archive-today | Browser-only archive.today (≤10 requests, manual) | ⏳ deploy step |
+| P9 browser-render | Cloudflare Browser Rendering (10 min/day) on class C | ⚠️ PARK (desk-check: inherits CF-IP block) |
+| P10 archive-today | Browser-only archive.today (≤10 requests, manual) | ⛔ KEEP AS LINK (automation-blocked) |
 | P11 jina-reader | r.jina.ai free reader hit rate + latency | ✅ **SHIP** (C 0→67%, client-side) |
 | P12 client-ai | Chrome built-in AI / WebLLM feasibility | 🔶 PROTOTYPE (post-processing only) |

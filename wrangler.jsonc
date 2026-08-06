@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "saucedapple",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-08-01",
+  "assets": {
+    // Serve index.html for any non-asset path so /?url=... permalinks work.
+    "not_found_handling": "single-page-application",
+    // Only /api/* is handled by the worker; everything else is static.
+    "run_worker_first": ["/api/*"],
+  },
+  "observability": {
+    "enabled": true,
+  },
+  "env": {
+    // Hermetic e2e: point upstream origins at the local mock server.
+    "e2e": {
+      "vars": {
+        "APPLE_NEWS_ORIGIN": "http://127.0.0.1:8799/apple-news",
+        "WAYBACK_API_ORIGIN": "http://127.0.0.1:8799/wayback",
+        "WEB_ARCHIVE_ORIGIN": "http://127.0.0.1:8799/snapshots",
+      },
+    },
+  },
+}

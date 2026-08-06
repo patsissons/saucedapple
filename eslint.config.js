@@ -19,6 +19,12 @@ export default tseslint.config(
       ecmaVersion: 2022,
       globals: globals.browser,
     },
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
   },
   {
     // shadcn/ui components export variants (e.g. buttonVariants) alongside

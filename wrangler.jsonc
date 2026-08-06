@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "saucedapple",
+  "account_id": "44b7c17d8e1777c82076a233e873eee8",
   "main": "worker/index.ts",
   "compatibility_date": "2026-08-01",
   "assets": {

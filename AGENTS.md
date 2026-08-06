@@ -44,11 +44,16 @@ with ESLint, formatted with Prettier.
 - Parsing fixtures in `worker/lib/__fixtures__/` are recorded from the live
   site (prettier-ignored) — don't reformat or hand-edit the recorded ones.
 
-## Deploying
+## Shipping changes
 
-`pnpm run deploy` (NOT bare `pnpm deploy` — that's pnpm's workspace
-command). Requires `wrangler login`. Custom domains saucedapple.com /
-www.saucedapple.com are declared in wrangler.jsonc.
+- `main` is protected: no direct pushes, no admin bypass. Land changes as
+  branch → PR → green `validate` check → merge.
+- Merging to `main` deploys automatically (GitHub Actions runs
+  `wrangler deploy` after validation). Do not run `pnpm run deploy`
+  manually except in emergencies (it needs `wrangler login`; NOT bare
+  `pnpm deploy` — that's pnpm's workspace command).
+- Custom domains saucedapple.com / www.saucedapple.com are declared in
+  wrangler.jsonc.
 
 ## After making changes from a prompt, BEFORE committing
 

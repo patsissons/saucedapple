@@ -63,6 +63,20 @@ pnpm exec playwright install chromium # browsers for the e2e suite
   mock of apple.news/publisher/Wayback; the Worker points at it via the
   wrangler `e2e` environment (`CLOUDFLARE_ENV=e2e`).
 
+## CI/CD
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every PR and on pushes
+to `main`:
+
+- **validate** — `pnpm validate` (format check, typecheck, lint, unit tests,
+  hermetic Playwright e2e) plus a production build. Required to merge:
+  `main` is protected, so changes land via PR with this check green.
+- **deploy** — on `main` pushes only, after validate passes: builds and runs
+  `wrangler deploy`, publishing to saucedapple.com. Requires the
+  `CLOUDFLARE_API_TOKEN` repo secret (a Cloudflare API token created from
+  the "Edit Cloudflare Workers" template; set with
+  `gh secret set CLOUDFLARE_API_TOKEN`).
+
 ## Deploying
 
 The app deploys as a single Cloudflare Worker (SPA assets + API) to
@@ -78,6 +92,9 @@ pnpm run deploy            # build + wrangler deploy
 Note it must be `pnpm run deploy` — bare `pnpm deploy` is pnpm's built-in
 workspace command, not this script. No secrets or paid services are
 required; everything runs on the Workers free tier.
+
+Deploys normally happen automatically when a PR merges to `main` (see
+CI/CD above) — manual deploys are for emergencies.
 
 ## Testing notes
 

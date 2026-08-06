@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>An Exclusive Story</title>
+  <script type="text/javascript">
+    window.onload = function () {
+      if (shouldRedirectToApp(curUserAgent)) {
+        window.location = "applenewss:///AExclusiveStoryId0000";
+      }
+      function redirectToUrl(url) {
+        window.location = url;
+      }
+      function redirectToUrlAfterTimeout(url, timeout) {
+        setTimeout(function () { window.location = url; }, timeout);
+      }
+    };
+  </script>
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="An Exclusive Story &#8212; Apple News+ Magazine" />
+  <meta property="og:description" content="A story that only exists inside Apple News+ &amp; has no publisher website." />
+  <meta property="og:image" content="https://c.apple.news/ExclusiveImageId" />
+</head>
+<body></body>
+</html>

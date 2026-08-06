@@ -25,3 +25,6 @@ test-results/
 
 # Local Cloudflare dev state
 .wrangler/
+
+# Research harness: cached raw HTTP captures (replay mode) are regenerable
+research/corpus/cache/

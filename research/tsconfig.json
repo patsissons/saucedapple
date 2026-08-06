@@ -1,0 +1,17 @@
+{
+  "//": "Standalone config for the research harness. NOT referenced by the root tsconfig, `pnpm typecheck`, ESLint, or Vitest — research/ is deliberately isolated from the production toolchain. Type-check locally with: npx tsc -p research/tsconfig.json --noEmit",
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["lib", "probes", "corpus"]
+}

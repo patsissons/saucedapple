@@ -4,3 +4,5 @@ dist/
 coverage/
 playwright-report/
 test-results/
+# Research harness is isolated from the production toolchain (see research/README.md).
+research/

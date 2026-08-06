@@ -44,11 +44,15 @@ export function ReaderView({ appleNewsUrl }: { appleNewsUrl: string }) {
   return (
     <Collapsible open={open} onOpenChange={handleOpenChange} className="w-full">
       <CollapsibleTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-muted-foreground">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400"
+        >
           <ChevronDown
             className={`size-4 transition-transform ${open ? "rotate-180" : ""}`}
           />
-          {open ? "hide transcript" : "read transcript"}
+          {open ? "Hide transcript" : "Read transcript"}
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="pt-4">

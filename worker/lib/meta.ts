@@ -42,7 +42,7 @@ export function injectArticleMeta(
   article: ResolveResponse,
   permalinkUrl: string,
 ): string {
-  const title = article.title ?? "sauced apple";
+  const title = article.title ?? "Sauced Apple";
   const fullTitle = article.publisher
     ? `${title} — ${article.publisher}`
     : title;
@@ -52,7 +52,7 @@ export function injectArticleMeta(
   const image = article.image ?? "https://saucedapple.com/og-image.png";
 
   let out = html;
-  out = setTitle(out, `${title} · sauced apple`);
+  out = setTitle(out, `${title} · Sauced Apple`);
   out = setMeta(out, "name", "description", description);
   out = setMeta(out, "property", "og:type", "article");
   out = setMeta(out, "property", "og:title", fullTitle);

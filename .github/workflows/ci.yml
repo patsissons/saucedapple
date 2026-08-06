@@ -62,30 +62,13 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  # Validated main pushes deploy via the reusable Deploy workflow
+  # (.github/workflows/deploy.yml — also manually dispatchable for
+  # rollbacks to any SHA).
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: validate
-    runs-on: ubuntu-latest
-    concurrency:
-      group: deploy-production
-      cancel-in-progress: false
-    environment:
-      name: production
-      url: https://saucedapple.com
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: pnpm/action-setup@v6
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm build
-
-      - run: pnpm exec wrangler deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      sha: ${{ github.sha }}
+    secrets: inherit

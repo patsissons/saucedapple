@@ -47,7 +47,7 @@ describe("handleRoot", () => {
       makeDeps({ calls: [], routes: {} }),
     );
     const html = await response.text();
-    expect(html).toContain('property="og:title" content="sauced apple"');
+    expect(html).toContain('property="og:title" content="Sauced Apple"');
   });
 
   it("injects article meta for a valid resolvable permalink", async () => {
@@ -70,7 +70,7 @@ describe("handleRoot", () => {
       makeDeps(upstream),
     );
     const html = await response.text();
-    expect(html).toContain('property="og:title" content="sauced apple"');
+    expect(html).toContain('property="og:title" content="Sauced Apple"');
     expect(upstream.calls).toHaveLength(0);
   });
 
@@ -85,6 +85,6 @@ describe("handleRoot", () => {
       makeDeps(upstream),
     );
     const html = await response.text();
-    expect(html).toContain('property="og:title" content="sauced apple"');
+    expect(html).toContain('property="og:title" content="Sauced Apple"');
   });
 });

@@ -40,7 +40,7 @@ describe("App", () => {
       screen.getByRole("heading", { name: /sauced\s+apple/i }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Apple News link")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "sauce it" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Sauce it!" })).toBeDisabled();
   });
 
   it("resolves a submitted link and shows the article card with links", async () => {
@@ -49,7 +49,7 @@ describe("App", () => {
     render(<App />);
 
     await user.type(screen.getByLabelText("Apple News link"), ARTICLE_URL);
-    await user.click(screen.getByRole("button", { name: "sauce it" }));
+    await user.click(screen.getByRole("button", { name: "Sauce it!" }));
 
     expect(
       await screen.findByText("How Cider Makers Reinvented an Industry"),
@@ -80,7 +80,7 @@ describe("App", () => {
       screen.getByLabelText("Apple News link"),
       "https://example.com/story",
     );
-    await user.click(screen.getByRole("button", { name: "sauce it" }));
+    await user.click(screen.getByRole("button", { name: "Sauce it!" }));
 
     expect(
       await screen.findByText("Not an Apple News link"),
@@ -100,6 +100,22 @@ describe("App", () => {
     expect(
       await screen.findByText("How Cider Makers Reinvented an Industry"),
     ).toBeInTheDocument();
+  });
+
+  it("copies the current page link from the global copy button", async () => {
+    // setup() first: userEvent installs its own clipboard stub, which would
+    // overwrite this mock if defined before it.
+    const user = userEvent.setup();
+    const writeText = vi.fn(async () => {});
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Copy link" }));
+
+    expect(writeText).toHaveBeenCalledWith(window.location.href);
   });
 
   it("toggles dark mode and persists the override", async () => {

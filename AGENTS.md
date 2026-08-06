@@ -48,9 +48,10 @@ with ESLint, formatted with Prettier.
 
 - `main` is protected: no direct pushes, no admin bypass. Land changes as
   branch → PR → green `validate` check → merge.
-- Merging to `main` deploys automatically (GitHub Actions runs
-  `wrangler deploy` after validation). Do not run `pnpm run deploy`
-  manually except in emergencies (it needs `wrangler login`; NOT bare
+- Merging to `main` deploys automatically (CI calls the reusable Deploy
+  workflow after validation). To roll back or redeploy a specific commit:
+  `gh workflow run deploy.yml -f sha=<sha>`. Do not run `pnpm run deploy`
+  locally except in emergencies (it needs `wrangler login`; NOT bare
   `pnpm deploy` — that's pnpm's workspace command).
 - Custom domains saucedapple.com / www.saucedapple.com are declared in
   wrangler.jsonc.

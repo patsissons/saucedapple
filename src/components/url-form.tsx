@@ -37,7 +37,7 @@ export function UrlForm({ initialValue, busy, onSubmit }: UrlFormProps) {
         autoFocus
       />
       <Button type="submit" disabled={busy || value.trim() === ""}>
-        {busy ? "saucing…" : "sauce it"}
+        {busy ? "Saucing…" : "Sauce it!"}
       </Button>
     </form>
   );

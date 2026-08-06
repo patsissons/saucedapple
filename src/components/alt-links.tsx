@@ -13,7 +13,13 @@ export function AltLinks({ article }: { article: ResolveResponse }) {
       </h2>
       <div className="flex flex-wrap gap-2">
         {links.map((link) => (
-          <Button key={link.key} variant="outline" size="sm" asChild>
+          <Button
+            key={link.key}
+            variant="outline"
+            size="sm"
+            asChild
+            className="hover:border-amber-500/70 hover:text-amber-700 dark:hover:border-amber-500/70 dark:hover:text-amber-400"
+          >
             <a
               href={link.href}
               target="_blank"

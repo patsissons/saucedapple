@@ -38,10 +38,17 @@ export function PageActions() {
         size="icon"
         onClick={share}
         aria-label="Share this page"
+        className="hover:text-amber-600 dark:hover:text-amber-400"
       >
         <Share2 className="size-5" />
       </Button>
-      <Button variant="ghost" size="icon" onClick={copy} aria-label="Copy link">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={copy}
+        aria-label="Copy link"
+        className="hover:text-amber-600 dark:hover:text-amber-400"
+      >
         {copied ? (
           <Check className="size-5 text-green-500" />
         ) : (

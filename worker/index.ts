@@ -1,6 +1,7 @@
 import type { Env, ExecutionContext } from "./cloudflare";
 import { getDefaultCache } from "./lib/cache";
 import { errorResponse } from "./lib/errors";
+import { handleExtract } from "./routes/extract";
 import { handleResolve, type Deps } from "./routes/resolve";
 
 export default {
@@ -22,6 +23,8 @@ export default {
         return Response.json({ ok: true });
       case "/api/resolve":
         return handleResolve(request, env, deps);
+      case "/api/extract":
+        return handleExtract(request, env, deps);
       default:
         return errorResponse("not_found", "Unknown API route");
     }

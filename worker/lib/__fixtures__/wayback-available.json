@@ -1,0 +1,11 @@
+{
+  "url": "https://publisher.test/story",
+  "archived_snapshots": {
+    "closest": {
+      "status": "200",
+      "available": true,
+      "url": "http://web.archive.org/web/20260728182004/https://publisher.test/story",
+      "timestamp": "20260728182004"
+    }
+  }
+}

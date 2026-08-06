@@ -63,6 +63,8 @@ export function makeDeps(
 export const testEnv: Env = {
   ASSETS: { fetch },
   APPLE_NEWS_ORIGIN: "https://apple-news.test",
+  WAYBACK_API_ORIGIN: "https://wayback.test",
+  WEB_ARCHIVE_ORIGIN: "https://snapshots.test",
 };
 
 export function resolveRequest(url: string | null): Request {

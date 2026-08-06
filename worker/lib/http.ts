@@ -9,6 +9,34 @@ export class UpstreamTimeoutError extends Error {
   }
 }
 
+/**
+ * Read a response body as text, aborting past maxBytes (huge pages would
+ * blow the Workers CPU/memory budget; an article never needs more).
+ */
+export async function readTextCapped(
+  response: Response,
+  maxBytes: number,
+): Promise<string> {
+  if (!response.body) return "";
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.byteLength;
+    if (received >= maxBytes) {
+      await reader.cancel();
+      break;
+    }
+  }
+  const decoder = new TextDecoder();
+  return chunks
+    .map((chunk) => decoder.decode(chunk, { stream: true }))
+    .join("");
+}
+
 export async function fetchWithTimeout(
   fetchImpl: typeof fetch,
   url: string,

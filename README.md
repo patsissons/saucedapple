@@ -1,6 +1,28 @@
-# saucedapple
+# sauced apple
 
-A React web app built with Vite, TypeScript, Tailwind CSS, and shadcn/ui.
+**saucedapple.com** — paste an [Apple News](https://apple.news) link, get free
+ways to read the story: the publisher's own page, public archive snapshots,
+and a best-effort extracted transcript. No Apple News subscription, no
+account, no tracking. Results are permalinkable via `/?url=<apple.news link>`.
+
+## How it works
+
+apple.news pages embed the publisher's canonical URL and article metadata,
+but serve no CORS headers — so a Cloudflare Worker does the fetching:
+
+- `GET /api/resolve?url=` — fetches the apple.news page once and returns
+  `{ canonicalUrl, title, publisher, description, image }`. Articles without
+  a publisher website (Apple News+ exclusives) return `canonicalUrl: null`.
+- `GET /api/extract?url=` — best-effort article text: fetches the publisher
+  page (falling back to a Wayback Machine snapshot when blocked or
+  paywalled) and runs Readability over it. Returns unsanitized HTML — the
+  client sanitizes with DOMPurify before rendering.
+- Alternative reading links (archive.today, Wayback, Google) are built
+  client-side from the resolve payload; archives are linked, never proxied.
+
+The same Worker serves the React SPA as static assets (Cloudflare "Workers
+with static assets" via `@cloudflare/vite-plugin`). Responses are cached for
+24h with the Cache API.
 
 ## Setup
 
@@ -16,19 +38,30 @@ pnpm exec playwright install chromium # browsers for the e2e suite
 
 | Script                     | What it does                                                                     |
 | -------------------------- | -------------------------------------------------------------------------------- |
-| `pnpm dev`                 | Start the Vite dev server for local development                                  |
-| `pnpm build`               | Build the production bundle into `dist/`                                         |
+| `pnpm dev`                 | Vite dev server with the Worker running in workerd (`/api/*` works)              |
+| `pnpm build`               | Build the SPA + Worker into `dist/`                                              |
 | `pnpm preview`             | Serve the production build locally                                               |
 | `pnpm test`                | Run unit tests once (Vitest)                                                     |
 | `pnpm test:watch`          | Run unit tests in watch mode                                                     |
-| `pnpm test:e2e`            | Run Playwright e2e tests (starts the dev server automatically)                   |
+| `pnpm test:e2e`            | Playwright e2e — fully hermetic, boots a local mock of apple.news/archives       |
 | `pnpm format`              | Format all files with Prettier                                                   |
 | `pnpm format:check`        | Check formatting without writing                                                 |
-| `pnpm typecheck`           | Type-check with `tsc --noEmit`                                                   |
+| `pnpm typecheck`           | Type-check with `tsc --noEmit` (native TS 7)                                     |
 | `pnpm lint`                | Lint with ESLint                                                                 |
 | `pnpm validate:quick`      | Format check + type check + lint + unit tests — quick validation of code changes |
 | `pnpm validate`            | `validate:quick`, then the Playwright e2e suite — used for CI/CD                 |
 | `pnpm format-and-validate` | Prettier format (write), then `validate` — run this before committing            |
+
+## Layout
+
+- `worker/` — Cloudflare Worker: API routes, apple.news parsing, extraction
+  pipeline (linkedom + Readability), Wayback fallback. Fixtures recorded from
+  the live site live in `worker/lib/__fixtures__/`.
+- `shared/` — types and URL validation used by both the Worker and the SPA.
+- `src/` — React SPA (Tailwind v4 + shadcn/ui).
+- `e2e/` — Playwright specs plus `e2e/mocks/upstream.mjs`, a dependency-free
+  mock of apple.news/publisher/Wayback; the Worker points at it via the
+  wrangler `e2e` environment (`CLOUDFLARE_ENV=e2e`).
 
 ## Testing notes
 
@@ -36,7 +69,9 @@ pnpm exec playwright install chromium # browsers for the e2e suite
   from `vitest` explicitly.
 - `vitest.setup.ts` registers Testing Library's `cleanup()` in an `afterEach`
   because the automatic cleanup only self-registers when test globals exist.
-- Unit tests live next to the code in `src/`; e2e tests live in `e2e/`.
+- Worker/shared tests run in node (`// @vitest-environment node` pragma);
+  component tests run in jsdom.
+- E2e never touches the real network.
 
 ## TypeScript setup
 

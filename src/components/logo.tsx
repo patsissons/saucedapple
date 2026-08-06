@@ -1,4 +1,4 @@
-// The brand mark: an apple bobbing in a steaming bowl of applesauce.
+// The brand mark: a red apple with sauce dripping down over it.
 // Keep in sync with public/favicon.svg (same art, JSX attributes).
 export function Logo({ className }: { className?: string }) {
   return (
@@ -8,40 +8,32 @@ export function Logo({ className }: { className?: string }) {
       className={className}
       aria-hidden="true"
     >
+      <defs>
+        <clipPath id="logo-apple-clip">
+          <circle cx="64" cy="74" r="42" />
+        </clipPath>
+      </defs>
+      <circle cx="64" cy="74" r="42" fill="#ef4444" />
+      <circle cx="46" cy="88" r="7" fill="#fca5a5" opacity="0.85" />
+      <g clipPath="url(#logo-apple-clip)">
+        <path
+          fill="#f59e0b"
+          d="M22 30h84v19H22z
+            M30 49v9a4.5 4.5 0 0 0 9 0v-9z
+            M50 49v22a5 5 0 0 0 10 0v-22z
+            M74 49v14a5 5 0 0 0 10 0v-14z
+            M92 49v6a4 4 0 0 0 8 0v-6z"
+        />
+        <circle cx="46" cy="42" r="6" fill="#fbbf24" opacity="0.9" />
+      </g>
       <path
-        d="M32 36c-5-6 5-9 0-16"
-        stroke="#a3a3a3"
-        strokeWidth="5"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.8"
-      />
-      <path
-        d="M96 36c-5-6 5-9 0-16"
-        stroke="#a3a3a3"
-        strokeWidth="5"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.8"
-      />
-      <path
-        d="M64 28c-1-7 3-12 9-14"
+        d="M64 36c-1-9 3-14 10-16"
         stroke="#92400e"
-        strokeWidth="5"
+        strokeWidth="6"
         strokeLinecap="round"
         fill="none"
       />
-      <path d="M73 14c9-6 17-3 19 3-7 5-15 3-19-3z" fill="#22c55e" />
-      <circle cx="64" cy="50" r="24" fill="#ef4444" />
-      <circle cx="55" cy="42" r="6" fill="#fca5a5" opacity="0.9" />
-      <path d="M16 72a48 48 0 0 0 96 0z" fill="#525252" />
-      <rect x="50" y="116" width="28" height="7" rx="3.5" fill="#525252" />
-      <path
-        d="M14 66c6-8 12-8 18 0s12 8 18 0 12-8 18 0 12 8 18 0 12-8 18 0v8H14z"
-        fill="#f59e0b"
-      />
-      <path d="M34 72v9a5 5 0 0 0 10 0v-9z" fill="#f59e0b" />
-      <path d="M84 72v14a5 5 0 0 0 10 0V72z" fill="#f59e0b" />
+      <path d="M74 18c9-7 18-4 20 3-7 5-16 4-20-3z" fill="#22c55e" />
     </svg>
   );
 }

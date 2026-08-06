@@ -36,7 +36,7 @@ describe("findWaybackSnapshot", () => {
     ).resolves.toBeNull();
   });
 
-  it("returns null when the availability API errors or rate-limits", async () => {
+  it("falls back to the blind nearest-snapshot URL when the API rate-limits", async () => {
     const upstream: FakeUpstream = {
       calls: [],
       routes: {
@@ -45,6 +45,15 @@ describe("findWaybackSnapshot", () => {
     };
     await expect(
       findWaybackSnapshot(makeFetch(upstream), testEnv, STORY),
-    ).resolves.toBeNull();
+    ).resolves.toBe(`https://snapshots.test/2id_/${STORY}`);
+  });
+
+  it("falls back to the blind nearest-snapshot URL on network errors", async () => {
+    const failingFetch: typeof fetch = async () => {
+      throw new TypeError("network down");
+    };
+    await expect(
+      findWaybackSnapshot(failingFetch, testEnv, STORY),
+    ).resolves.toBe(`https://snapshots.test/2id_/${STORY}`);
   });
 });

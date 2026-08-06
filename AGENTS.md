@@ -44,9 +44,41 @@ with ESLint, formatted with Prettier.
 - Parsing fixtures in `worker/lib/__fixtures__/` are recorded from the live
   site (prettier-ignored) — don't reformat or hand-edit the recorded ones.
 
+## Brand and design rules
+
+- The mark is a red apple with amber sauce dripping over it. It must NEVER
+  resemble the Apple Inc. logo (no bitten-apple silhouettes, no monochrome
+  apple glyphs) — that's a deliberate legal constraint, not taste.
+- The same art lives in THREE places that must stay in sync:
+  `public/favicon.svg`, `src/components/logo.tsx` (JSX attributes), and
+  `assets/og-image.html`. After changing it, regenerate the social image:
+  `pnpm exec playwright screenshot --viewport-size=1200,630 assets/og-image.html public/og-image.png`
+- Accent usage: sauce amber (`amber-500` family; wired into `--primary`,
+  `--accent`, `--ring` in src/index.css) is the interaction color. Primary
+  buttons are solid amber; secondary controls (icon buttons, outline pills,
+  ghost buttons) are NEUTRAL at rest and take amber text/border on hover
+  only — the user explicitly rejected always-amber secondary controls.
+- UI copy is sentence case ("Read transcript", "Sauce it!"); the wordmark
+  is title case ("Sauced Apple") with "Sauced" in amber and "Apple" in red.
+
+## Extraction limitations (learned the hard way — don't re-litigate)
+
+- Bot-hardened paywalled publishers (WSJ-class) return 401 bot-blocks to
+  ALL server-side fetches, and their pages (and even their Wayback
+  snapshots) are JS shells with zero server-rendered text. No plain-fetch
+  extractor can transcribe them; the links row (archive.today executes JS
+  when capturing) is the intended path. This is expected behavior, not a
+  bug.
+- Do NOT pre-reject pages on the `isAccessibleForFree: false` JSON-LD
+  marker — many sites declare it while shipping full text for SEO. The
+  extracted-text-length gate (MIN_TEXT_LENGTH) is the real paywall signal.
+- If WSJ-class transcripts are ever wanted: Cloudflare Browser Rendering
+  API (has a free allotment) or archive.today mirror rotation are the v2
+  candidates. Both were deliberately deferred.
+
 ## Shipping changes
 
-- `main` is protected: no direct pushes, no admin bypass. Land changes as
+- INTENDED flow (protection pending, see below): land changes as
   branch → PR → green `validate` check → merge.
 - Merging to `main` deploys automatically (CI calls the reusable Deploy
   workflow after validation). To roll back or redeploy a specific commit:
@@ -54,7 +86,28 @@ with ESLint, formatted with Prettier.
   locally except in emergencies (it needs `wrangler login`; NOT bare
   `pnpm deploy` — that's pnpm's workspace command).
 - Custom domains saucedapple.com / www.saucedapple.com are declared in
-  wrangler.jsonc.
+  wrangler.jsonc. The workers.dev preview
+  (saucedapple.patricksissons.workers.dev) serves the same deployment.
+
+## Pending setup (2026-08-06 — remove this section when done)
+
+Set up during a major GitHub Actions outage; two steps remain:
+
+1. **Verify the automatic triggers.** No `push` or `pull_request` event has
+   ever produced a CI run (only `workflow_dispatch` worked during the
+   outage). Once Actions is healthy, run a trivial branch/PR through:
+   confirm `validate` runs on the PR, merge, confirm the main push runs
+   validate and then auto-calls Deploy.
+2. **Apply branch protection** (only AFTER step 1 proves the checks
+   report — protecting first would wedge all merges):
+   `gh api -X PUT repos/patsissons/saucedapple/branches/main/protection`
+   with required_status_checks `{strict: true, checks: [{context: "validate"}]}`,
+   required_pull_request_reviews `{required_approving_review_count: 0}`,
+   `enforce_admins: true`, no force pushes or deletions.
+
+Until then, PRs are merged without a CI check after local
+`pnpm format-and-validate` passes, and deploys are dispatched manually
+(`gh workflow run deploy.yml`).
 
 ## After making changes from a prompt, BEFORE committing
 

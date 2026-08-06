@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        width: 1200px;
+        height: 630px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        background: radial-gradient(
+          ellipse at 50% 120%,
+          #2a1215 0%,
+          #171717 55%,
+          #0a0a0a 100%
+        );
+        font-family:
+          -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+        color: #fafafa;
+      }
+      .apple {
+        line-height: 0;
+      }
+      h1 {
+        font-size: 96px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+      }
+      h1 .red {
+        color: #ef4444;
+      }
+      h1 .amber {
+        color: #f59e0b;
+      }
+      p {
+        font-size: 34px;
+        color: #a3a3a3;
+        font-weight: 400;
+      }
+      .domain {
+        position: absolute;
+        bottom: 40px;
+        font-size: 26px;
+        color: #737373;
+        letter-spacing: 0.02em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="apple">
+      <svg
+        width="170"
+        height="170"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 128 128"
+      >
+        <defs>
+          <clipPath id="apple">
+            <circle cx="64" cy="74" r="42" />
+          </clipPath>
+        </defs>
+        <!-- apple -->
+        <circle cx="64" cy="74" r="42" fill="#ef4444" />
+        <circle cx="46" cy="88" r="7" fill="#fca5a5" opacity="0.85" />
+        <!-- sauce poured over the top, dripping down -->
+        <g clip-path="url(#apple)">
+          <path
+            fill="#f59e0b"
+            d="M22 30h84v19H22z
+      M30 49v9a4.5 4.5 0 0 0 9 0v-9z
+      M50 49v22a5 5 0 0 0 10 0v-22z
+      M74 49v14a5 5 0 0 0 10 0v-14z
+      M92 49v6a4 4 0 0 0 8 0v-6z"
+          />
+          <circle cx="46" cy="42" r="6" fill="#fbbf24" opacity="0.9" />
+        </g>
+        <!-- stem + leaf -->
+        <path
+          d="M64 36c-1-9 3-14 10-16"
+          stroke="#92400e"
+          stroke-width="6"
+          stroke-linecap="round"
+          fill="none"
+        />
+        <path d="M74 18c9-7 18-4 20 3-7 5-16 4-20-3z" fill="#22c55e" />
+      </svg>
+    </div>
+    <h1><span class="amber">Sauced</span> <span class="red">Apple</span></h1>
+    <p>Read Apple News links without a subscription</p>
+    <div class="domain">saucedapple.com</div>
+  </body>
+</html>

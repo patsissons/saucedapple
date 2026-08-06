@@ -24,6 +24,13 @@ The same Worker serves the React SPA as static assets (Cloudflare "Workers
 with static assets" via `@cloudflare/vite-plugin`). Responses are cached for
 24h with the Cache API.
 
+**Known limitation**: bot-hardened paywalled publishers (e.g. WSJ) block
+server-side fetches outright and serve JS-shell pages with no
+server-rendered text — even their Wayback snapshots are empty shells. For
+those, transcript extraction fails by design and the alternative links
+(especially archive.today, which executes JS when capturing) are the way
+to read the story. See AGENTS.md before "fixing" this.
+
 ## Setup
 
 Requires [Node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/) (the

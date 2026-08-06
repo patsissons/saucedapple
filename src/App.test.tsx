@@ -28,6 +28,8 @@ function stubResolve(body: unknown, status = 200) {
 afterEach(() => {
   vi.unstubAllGlobals();
   window.history.replaceState({}, "", "/");
+  document.documentElement.classList.remove("dark");
+  window.localStorage.removeItem("theme");
 });
 
 describe("App", () => {
@@ -98,6 +100,23 @@ describe("App", () => {
     expect(
       await screen.findByText("How Cider Makers Reinvented an Industry"),
     ).toBeInTheDocument();
+  });
+
+  it("toggles dark mode and persists the override", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const toggle = screen.getByRole("button", { name: "Toggle theme" });
+
+    // The stubbed matchMedia prefers light, so toggling turns dark on and
+    // stores an override…
+    await user.click(toggle);
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
+    expect(window.localStorage.getItem("theme")).toBe("dark");
+
+    // …and toggling back to the system preference clears the override.
+    await user.click(toggle);
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
+    expect(window.localStorage.getItem("theme")).toBeNull();
   });
 
   it("shows the News+ exclusive notice when there is no canonical URL", async () => {

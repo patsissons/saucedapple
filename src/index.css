@@ -119,6 +119,18 @@
 }
 
 @layer base {
+  /* Applied briefly by use-theme while toggling so the whole page
+     cross-fades between color modes without transitioning at rest. */
+  html.theme-transition,
+  html.theme-transition * {
+    transition:
+      background-color 0.35s ease,
+      border-color 0.35s ease,
+      color 0.35s ease,
+      fill 0.35s ease,
+      stroke 0.35s ease !important;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }

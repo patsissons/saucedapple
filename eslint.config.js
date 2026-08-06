@@ -20,5 +20,13 @@ export default tseslint.config(
       globals: globals.browser,
     },
   },
+  {
+    // shadcn/ui components export variants (e.g. buttonVariants) alongside
+    // the component, which fast refresh cannot handle.
+    files: ["src/components/ui/**/*.tsx"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
   prettier,
 );

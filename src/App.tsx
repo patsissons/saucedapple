@@ -1,6 +1,7 @@
 import { AlertCircle } from "lucide-react";
 import { AltLinks } from "@/components/alt-links";
 import { Logo } from "@/components/logo";
+import { PageActions } from "@/components/page-actions";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArticleCard } from "@/components/article-card";
 import { ReaderView } from "@/components/reader-view";
@@ -21,7 +22,10 @@ export default function App() {
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col px-4">
-      <ThemeToggle />
+      <div className="fixed top-4 right-4 flex items-center gap-1">
+        <PageActions />
+        <ThemeToggle />
+      </div>
       <main className="flex flex-1 flex-col items-center justify-center gap-6 py-12">
         <header className="flex flex-col items-center text-center">
           <Logo className="mb-3 size-20" />

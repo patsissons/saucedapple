@@ -102,6 +102,22 @@ describe("App", () => {
     ).toBeInTheDocument();
   });
 
+  it("copies the current page link from the global copy button", async () => {
+    // setup() first: userEvent installs its own clipboard stub, which would
+    // overwrite this mock if defined before it.
+    const user = userEvent.setup();
+    const writeText = vi.fn(async () => {});
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Copy link" }));
+
+    expect(writeText).toHaveBeenCalledWith(window.location.href);
+  });
+
   it("toggles dark mode and persists the override", async () => {
     const user = userEvent.setup();
     render(<App />);

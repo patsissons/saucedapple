@@ -6,7 +6,17 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", "coverage", "playwright-report", "test-results"] },
+  // research/ is an isolated experimentation harness with its own tsconfig;
+  // it is deliberately kept out of the production lint/type/test pipeline.
+  {
+    ignores: [
+      "dist",
+      "coverage",
+      "playwright-report",
+      "test-results",
+      "research",
+    ],
+  },
   {
     files: ["**/*.{ts,tsx}"],
     extends: [

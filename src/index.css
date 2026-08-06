@@ -138,6 +138,7 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans;
+    /* bg on html too so overscroll/canvas areas match the theme */
+    @apply bg-background font-sans;
   }
 }

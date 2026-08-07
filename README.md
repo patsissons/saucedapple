@@ -17,12 +17,14 @@ but serve no CORS headers — so a Cloudflare Worker does the fetching:
   page (falling back to a Wayback Machine snapshot when blocked or
   paywalled) and runs Readability over it. Returns unsanitized HTML — the
   client sanitizes with DOMPurify before rendering.
-- **Client-side reader fallback**: when `/api/extract` fails (soft paywall or
-  bot-block), the browser asks [r.jina.ai](https://jina.ai/reader/) to render
-  and extract the article, then sanitizes and shows it. This runs from the
-  user's own IP (which beats the Worker on publishers that block datacenter IP
-  ranges) at zero Worker cost. It's a best-effort third-party service, so the
-  reader always degrades to the alternative links below. See `src/lib/jina.ts`.
+- **Client-side reader fallback**: when `/api/extract` fails, the browser asks
+  [r.jina.ai](https://jina.ai/reader/) to render and extract the article, then
+  sanitizes and shows it. It costs the Worker nothing (no CPU, no subrequest),
+  but it is a modest, best-effort win — measured at **+3 of 42 test articles**,
+  and **zero** on hard paywalls — so it always degrades to the alternative links
+  below. It also sends the reader's IP and the article URL to a third party.
+  jina returns the whole page as markdown, so `src/lib/jina.ts` gates on genuine
+  article prose; otherwise subscription/footer chrome renders as a "transcript".
 - Alternative reading links (archive.today, Wayback, Google) are built
   client-side from the resolve payload; archives are linked, never proxied.
 
@@ -30,13 +32,12 @@ The same Worker serves the React SPA as static assets (Cloudflare "Workers
 with static assets" via `@cloudflare/vite-plugin`). Responses are cached for
 24h with the Cache API.
 
-**Known limitation**: the most bot-hardened publisher (WSJ) blocks every free
-route — server fetch, Wayback, and even the client-side reader (it returns a
-stub). For WSJ the alternative links (especially archive.today, which executes
-JS when capturing, clicked by a human) are the way to read the story. Many
-other paywalled publishers (e.g. FT, The Economist) that fail server-side
-extraction _are_ recovered by the client-side reader fallback. See AGENTS.md
-before "fixing" the WSJ case.
+**Known limitation**: hard-paywalled publishers (WSJ, FT, The Economist) block
+every free route — server fetch, Wayback, and the client-side reader, which
+returns only subscription/footer boilerplate for them. For those, the
+alternative links (especially archive.today, which executes JS when capturing,
+opened by a human) are the way to read the story. See AGENTS.md before
+"fixing" this.
 
 ## Setup
 

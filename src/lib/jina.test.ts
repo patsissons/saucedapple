@@ -21,11 +21,26 @@ function jinaBody(content: string): string {
   ].join("\n");
 }
 
-const LONG_BODY =
-  "# How Cider Makers Reinvented an Industry\n\n" +
-  "A wave of small producers began treating cider the way winemakers treat grapes. ".repeat(
-    12,
-  );
+// Paragraph-per-line, as jina emits. Each line must clear the prose gate.
+const PARAGRAPH =
+  "A wave of small producers began treating cider the way winemakers treat grapes, fermenting single varieties and bottling them like wine. ";
+// ~500 words across 4 paragraphs — comfortably over the article-prose gate.
+const LONG_BODY = [
+  "# How Cider Makers Reinvented an Industry",
+  PARAGRAPH.repeat(6),
+  PARAGRAPH.repeat(6),
+  PARAGRAPH.repeat(6),
+  PARAGRAPH.repeat(6),
+].join("\n");
+
+// What r.jina.ai actually returns for a hard paywall (FT-shaped): plenty of
+// text, but every line is subscription/footer chrome and none is the article.
+const PAYWALL_CHROME = [
+  "Then $75 per month. Complete digital access to quality FT journalism on any device. Cancel anytime during your trial period.",
+  "Complete digital access to quality journalism with expert analysis from industry leaders. Pay a year upfront and save 20% on your subscription.",
+  "Share News Tips Securely. Individual Subscriptions. Professional Subscriptions. Republishing. Executive Job Search. Advertise with us today.",
+  "Markets data delayed by at least 15 minutes. © THE FINANCIAL TIMES LTD 2026. FT and Financial Times are trademarks of The Financial Times Ltd.",
+].join("\n");
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -75,7 +90,37 @@ describe("extractViaReader", () => {
     expect(result.code).toBe("extraction_failed");
   });
 
-  it("fails when the reader returns a block/paywall page", async () => {
+  // The bug this guards against: jina returns the whole page as markdown, so a
+  // paywalled article still comes back with hundreds of words of subscription
+  // and footer text. A naive length check rendered that to users as an article.
+  it("rejects a paywall page that is long but contains only chrome", async () => {
+    stubFetch(() => new Response(jinaBody(PAYWALL_CHROME), { status: 200 }));
+
+    const result = await extractViaReader(URL);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("extraction_failed");
+  });
+
+  it("drops chrome lines but keeps the article when both are present", async () => {
+    stubFetch(
+      () =>
+        new Response(jinaBody(`${PAYWALL_CHROME}\n${LONG_BODY}`), {
+          status: 200,
+        }),
+    );
+
+    const result = await extractViaReader(URL);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.html).toContain("winemakers treat grapes");
+    expect(result.data.html).not.toContain("per month");
+    expect(result.data.html).not.toContain("FINANCIAL TIMES");
+  });
+
+  it("fails when the reader returns a block page", async () => {
     const blocked = "You have been blocked. " + "x ".repeat(400);
     stubFetch(() => new Response(jinaBody(blocked), { status: 200 }));
 

@@ -12,12 +12,21 @@ import type { ApiResult } from "./api";
 const JINA_BASE = "https://r.jina.ai/";
 const FETCH_TIMEOUT_MS = 30_000; // jina renders JS; it is seconds, not ms
 
-// Below this the "article" is a stub/paywall teaser, not a transcript.
-const MIN_CONTENT_CHARS = 600;
+// jina converts the WHOLE PAGE to markdown, so a paywalled article still comes
+// back with hundreds of words of navigation, subscription offers, consent
+// screens and footers. A naive length check therefore passes pure boilerplate
+// as a "transcript" — the FT's output is entirely "Then $75 per month… © THE
+// FINANCIAL TIMES LTD". We must measure ARTICLE PROSE, not document length.
+const MIN_PARAGRAPH_CHARS = 100;
+const MIN_ARTICLE_WORDS = 400;
+const MIN_ARTICLE_PARAGRAPHS = 3;
 
-// Signals that jina returned a block/challenge/paywall rather than an article.
-const BLOCK_RE =
-  /(you (?:have|'ve) been blocked|enable javascript|are you a robot|access denied|subscribe to (?:read|continue)|402 payment required|rate limit exceeded)/i;
+// Boilerplate vocabulary, including consent/privacy walls (some publishers
+// serve a long, prose-shaped CCPA/GDPR screen that clears any length gate).
+const CHROME_RE =
+  /\b(subscribe|subscriptions?|digital access|per month|per week|per year|cancel anytime|free trial|sign in|log in|create an account|newsletters?|cookies?|privacy (?:policy|center|rights)|personal information|targeted advertising|opt[- ]out|do not sell|consent|terms of (?:use|service)|all rights reserved|trademarks? of|registered office|vat reg|advertise with|follow us on|download the app|app store|google play|most popular|related stories|read more|share this|skip to content)\b/i;
+
+const FOOTER_RE = /©|\ball rights reserved\b|\bregistered in england\b/i;
 
 export interface ReaderExtract {
   html: string;
@@ -39,6 +48,56 @@ export function parseJinaMarkdown(raw: string): {
   const idx = raw.indexOf(marker);
   const markdown = (idx >= 0 ? raw.slice(idx + marker.length) : raw).trim();
   return { title, markdown };
+}
+
+/** Markdown -> plain text, for judging whether a line is article prose. */
+function toPlainText(line: string): string {
+  return line
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[#>*_`]/g, " ")
+    .replace(/[ \t]+/g, " ")
+    .trim();
+}
+
+function countWords(text: string): number {
+  const trimmed = text.trim();
+  return trimmed ? trimmed.split(/\s+/).length : 0;
+}
+
+/**
+ * Split jina's markdown into what we render and what we judge it by.
+ *
+ * `prose` (long, non-chrome paragraphs) is the gate — it is what stops a
+ * paywall stub, which is mostly subscription and footer text, from being
+ * rendered as a transcript. `render` additionally keeps the article's own
+ * headings so long pieces don't collapse into a wall of text; headings are
+ * deliberately excluded from the gate so they can't pad a stub past it.
+ */
+export function articleLines(markdown: string): {
+  render: string[];
+  prose: string[];
+} {
+  const render: string[] = [];
+  const prose: string[] = [];
+
+  for (const line of markdown.split("\n")) {
+    const text = toPlainText(line);
+    if (!text) continue;
+    if (CHROME_RE.test(text) || FOOTER_RE.test(text)) continue;
+
+    if (/^\s{0,3}#{1,6}\s/.test(line)) {
+      render.push(line);
+      continue;
+    }
+    if (text.length >= MIN_PARAGRAPH_CHARS) {
+      render.push(line);
+      prose.push(line);
+    }
+  }
+
+  return { render, prose };
 }
 
 /**
@@ -73,9 +132,10 @@ export async function extractViaReader(
   const raw = await response.text();
   const { title, markdown } = parseJinaMarkdown(raw);
 
+  const { render, prose } = articleLines(markdown);
   if (
-    markdown.length < MIN_CONTENT_CHARS ||
-    BLOCK_RE.test(markdown.slice(0, 4000))
+    prose.length < MIN_ARTICLE_PARAGRAPHS ||
+    countWords(prose.join(" ")) < MIN_ARTICLE_WORDS
   ) {
     return {
       ok: false,
@@ -84,6 +144,7 @@ export async function extractViaReader(
     };
   }
 
-  const html = await marked.parse(markdown);
+  // Render the article only — the chrome we just identified is dropped.
+  const html = await marked.parse(render.join("\n\n"));
   return { ok: true, data: { html, title, sourceUrl: canonicalUrl } };
 }

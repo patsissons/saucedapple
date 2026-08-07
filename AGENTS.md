@@ -72,19 +72,23 @@ with ESLint, formatted with Prettier.
 - Do NOT pre-reject pages on the `isAccessibleForFree: false` JSON-LD
   marker — many sites declare it while shipping full text for SEO. The
   extracted-text-length gate (MIN_TEXT_LENGTH) is the real paywall signal.
-- **Client-side reader fallback (shipped)**: when `/api/extract` fails, the
-  browser calls r.jina.ai to render + extract the article from the user's own
-  IP (`src/lib/jina.ts`, wired into `src/components/reader-view.tsx`). A
-  research program (see the `research/` dir / PR) measured this lifting overall
-  coverage 50%→86% and hard paywalls 0%→67% — it cracks FT and The Economist.
-  **WSJ still resists it** (returns a stub), so WSJ remains archive.today-link
-  only. jina is a best-effort third party: always degrade to the alt-links,
-  never make it a hard dependency, and keep the fetch client-side (it must not
-  move to the Worker — the point is the residential IP + zero CPU).
-- If WSJ specifically is ever wanted: Cloudflare Browser Rendering inherits the
-  Cloudflare-IP block (it runs on CF infra), so it likely won't help; the
-  archive.today link (human-clicked) is the realistic path. Deliberately not
-  pursued.
+- **Client-side reader fallback (r.jina.ai)**: `src/lib/jina.ts`, wired into
+  `src/components/reader-view.tsx`. Measured honestly it recovers **+3 of 42**
+  test articles (50%→57%) and **0 of 9 hard paywalls** — a modest win, not a
+  paywall bypass. Two rules if you touch it:
+  1. **Gate on article prose, never on length.** jina returns the WHOLE PAGE as
+     markdown, so nav/subscription/consent/footer text will pass any length
+     check and render as a fake "transcript" (the FT's entire output is
+     "Then $75 per month… © THE FINANCIAL TIMES LTD"). An earlier research pass
+     made exactly this mistake and wrongly concluded jina cracked paywalls.
+  2. It is a third party that receives the reader's IP and article URL — weigh
+     against the app's "no tracking" positioning; always degrade to alt-links.
+     Note there is NO "residential IP" benefit: the browser cannot fetch publishers
+     (CORS), so jina fetches from its own infra. Client-side buys only zero Worker
+     CPU/subrequests.
+- Cloudflare Browser Rendering runs on Cloudflare infra, so it inherits the same
+  IP block; it is not a WSJ answer either. The archive.today link, opened by a
+  human, remains the only realistic path for hard paywalls.
 
 ## Shipping changes
 

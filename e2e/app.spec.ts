@@ -51,21 +51,30 @@ test("falls back to the client-side reader when extraction fails", async ({
     route.fulfill({
       status: 200,
       contentType: "text/plain",
-      body:
-        "Title: A Paywalled Investigation\n\n" +
-        "URL Source: https://publisher.test/paywalled\n\n" +
-        "Markdown Content:\n# A Paywalled Investigation\n\n" +
-        "The reader recovered the full story from your own browser. ".repeat(
-          20,
+      body: [
+        "Title: A Paywalled Investigation",
+        "",
+        "URL Source: https://publisher.test/paywalled",
+        "",
+        "Markdown Content:",
+        "# A Paywalled Investigation",
+        // Four substantial paragraphs — the reader requires real article prose
+        // (>=3 paragraphs, >=400 words), so a short stub would be rejected.
+        ...Array.from({ length: 4 }, () =>
+          "The reader recovered the full story from your own browser. ".repeat(
+            12,
+          ),
         ),
+      ].join("\n"),
     }),
   );
 
   await page.goto(`/?url=${encodeURIComponent(PAYWALL_URL)}`);
   await page.getByRole("button", { name: /read transcript/i }).click();
 
+  // The fixture has several paragraphs, so scope to the first match.
   await expect(
-    page.getByText(/the reader recovered the full story/i),
+    page.getByText(/the reader recovered the full story/i).first(),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: /reader view/i })).toBeVisible();
 });

@@ -2,6 +2,7 @@ import type {
   ApiError,
   ErrorCode,
   ExtractResponse,
+  RelatedResponse,
   ResolveResponse,
 } from "../../shared/api";
 
@@ -46,4 +47,8 @@ export function extractArticle(
   url: string,
 ): Promise<ApiResult<ExtractResponse>> {
   return getJson<ExtractResponse>("/api/extract", url);
+}
+
+export function fetchRelated(url: string): Promise<ApiResult<RelatedResponse>> {
+  return getJson<RelatedResponse>("/api/related", url);
 }

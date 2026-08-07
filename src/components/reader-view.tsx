@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import type { ErrorCode } from "../../shared/api";
 import { extractArticle } from "@/lib/api";
 import { extractViaReader } from "@/lib/jina";
 import { sanitizeArticleHtml } from "@/lib/sanitize";
@@ -9,6 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { RelatedCoverage } from "@/components/related-coverage";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Source = "publisher" | "wayback" | "reader";
@@ -25,13 +27,29 @@ type ReaderState =
   | { status: "loading" }
   | { status: "loading-reader" }
   | { status: "loaded"; transcript: Transcript }
-  | { status: "failed"; message: string };
+  | { status: "failed"; message: string; readerTried: boolean };
 
 const SOURCE_LABEL: Record<Source, string> = {
   publisher: "the publisher's site",
   wayback: "a Wayback Machine snapshot",
-  reader: "a reader view (r.jina.ai)",
+  reader: "a reader service (r.jina.ai)",
 };
+
+// Say what actually happened instead of collapsing every cause into one line.
+function failureMessage(code: ErrorCode): string {
+  switch (code) {
+    case "extraction_failed":
+      return "This publisher doesn't serve the article text to us — it's likely paywalled or blocks automated readers.";
+    case "no_canonical":
+      return "This is an Apple News+ exclusive with no publisher website, so there's no free version to read.";
+    case "upstream_timeout":
+      return "The publisher took too long to respond.";
+    case "upstream_error":
+      return "We couldn't reach the publisher just now.";
+    default:
+      return "We couldn't pull the article text.";
+  }
+}
 
 export function ReaderView({
   appleNewsUrl,
@@ -44,7 +62,6 @@ export function ReaderView({
   const [open, setOpen] = useState(false);
 
   async function load() {
-    // Rung 1–2: the Worker's own extraction (publisher page, then Wayback).
     setState({ status: "loading" });
     const extracted = await extractArticle(appleNewsUrl);
     if (extracted.ok) {
@@ -59,8 +76,17 @@ export function ReaderView({
       });
       return;
     }
+    setState({
+      status: "failed",
+      message: failureMessage(extracted.code),
+      readerTried: false,
+    });
+  }
 
-    // Rung 3: client-side reader from the user's own IP, zero Worker cost.
+  // Opt-in on purpose: this hands the article URL (and the reader's IP) to a
+  // third party, and it only recovers a small share of articles — so it is an
+  // explicit choice, not something that happens quietly on every failure.
+  async function tryReader() {
     setState({ status: "loading-reader" });
     const reader = await extractViaReader(canonicalUrl);
     if (reader.ok) {
@@ -75,11 +101,11 @@ export function ReaderView({
       });
       return;
     }
-
     setState({
       status: "failed",
       message:
-        "Couldn't pull the article text — try one of the links above instead.",
+        "The reader service couldn't get the article text either — the links above are the way in.",
+      readerTried: true,
     });
   }
 
@@ -110,8 +136,7 @@ export function ReaderView({
           <div className="space-y-3" aria-label="Loading article text">
             {state.status === "loading-reader" && (
               <p className="text-muted-foreground text-sm">
-                Fetching a clean copy from the reader… this can take a few
-                seconds.
+                Asking the reader service… this can take a few seconds.
               </p>
             )}
             <Skeleton className="h-4 w-full" />
@@ -121,7 +146,26 @@ export function ReaderView({
           </div>
         )}
         {state.status === "failed" && (
-          <p className="text-muted-foreground text-sm">{state.message}</p>
+          <div>
+            <p className="text-muted-foreground text-sm">{state.message}</p>
+            {!state.readerTried && (
+              <div className="mt-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void tryReader()}
+                  className="hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400"
+                >
+                  Try a reader service
+                </Button>
+                <p className="text-muted-foreground mt-1.5 text-xs">
+                  Sends this article's address to r.jina.ai, a third-party
+                  reader. It works for some paywalled sites, but not most.
+                </p>
+              </div>
+            )}
+            <RelatedCoverage appleNewsUrl={appleNewsUrl} />
+          </div>
         )}
         {state.status === "loaded" && (
           <article>

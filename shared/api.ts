@@ -23,6 +23,21 @@ export interface ExtractResponse {
   textLength: number;
 }
 
+/** Another outlet covering the same story, for the "read elsewhere" row. */
+export interface RelatedOutlet {
+  /** Display name from the feed, e.g. "Reuters". */
+  outlet: string;
+  /** Bare hostname, used for dedupe and as a fallback label. */
+  host: string;
+  /** That outlet's headline for the story. */
+  title: string;
+  url: string;
+}
+
+export interface RelatedResponse {
+  outlets: RelatedOutlet[];
+}
+
 export type ErrorCode =
   | "invalid_url"
   | "not_found"

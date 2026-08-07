@@ -43,7 +43,28 @@ test("the reader view loads the extracted transcript", async ({ page }) => {
   await expect(page.getByText(/extracted from/i)).toBeVisible();
 });
 
-test("falls back to the client-side reader when extraction fails", async ({
+test("a failed extraction explains itself and offers other outlets", async ({
+  page,
+}) => {
+  await page.goto(`/?url=${encodeURIComponent(PAYWALL_URL)}`);
+  await page.getByRole("button", { name: /read transcript/i }).click();
+
+  // Says what actually happened, rather than one generic failure line.
+  await expect(page.getByText(/likely paywalled/i)).toBeVisible();
+
+  // The "read elsewhere" row: other outlets covering the same story.
+  await expect(
+    page.getByText(/other outlets covering this story/i),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /Reuters/ })).toBeVisible();
+
+  // The third-party reader is offered, not used automatically.
+  await expect(
+    page.getByRole("button", { name: /try a reader service/i }),
+  ).toBeVisible();
+});
+
+test("the opt-in reader service can recover a blocked article", async ({
   page,
 }) => {
   // Intercept the browser's call to r.jina.ai so the suite stays hermetic.
@@ -71,12 +92,15 @@ test("falls back to the client-side reader when extraction fails", async ({
 
   await page.goto(`/?url=${encodeURIComponent(PAYWALL_URL)}`);
   await page.getByRole("button", { name: /read transcript/i }).click();
+  await page.getByRole("button", { name: /try a reader service/i }).click();
 
   // The fixture has several paragraphs, so scope to the first match.
   await expect(
     page.getByText(/the reader recovered the full story/i).first(),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: /reader view/i })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /reader service/i }),
+  ).toBeVisible();
 });
 
 test("an invalid link shows an inline error", async ({ page }) => {

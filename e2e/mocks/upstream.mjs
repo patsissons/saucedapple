@@ -109,6 +109,22 @@ const server = createServer((req, res) => {
     return send(200, '{"archived_snapshots":{}}', "application/json");
   }
 
+  // Stands in for Google News RSS so the "read elsewhere" row is hermetic.
+  // Item titles echo the query so the same-story similarity filter matches.
+  if (url.pathname === "/google-news/rss/search") {
+    const query = url.searchParams.get("q") ?? "";
+    return send(
+      200,
+      `<?xml version="1.0"?><rss><channel>` +
+        `<item><title>${query}</title>` +
+        `<source url="https://www.reuters.com">Reuters</source></item>` +
+        `<item><title>${query} — analysis</title>` +
+        `<source url="https://www.npr.org">NPR</source></item>` +
+        `</channel></rss>`,
+      "application/xml",
+    );
+  }
+
   return send(404, "not found", "text/plain");
 });
 

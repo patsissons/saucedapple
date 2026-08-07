@@ -15,6 +15,8 @@ const ERROR_TITLES: Record<string, string> = {
   not_found: "Article not found",
   upstream_error: "Apple News is unreachable",
   upstream_timeout: "Apple News took too long",
+  no_canonical: "Apple News+ exclusive",
+  extraction_failed: "No readable article text",
 };
 
 export default function App() {

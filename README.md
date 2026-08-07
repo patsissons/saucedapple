@@ -17,14 +17,19 @@ but serve no CORS headers — so a Cloudflare Worker does the fetching:
   page (falling back to a Wayback Machine snapshot when blocked or
   paywalled) and runs Readability over it. Returns unsanitized HTML — the
   client sanitizes with DOMPurify before rendering.
-- **Client-side reader fallback**: when `/api/extract` fails, the browser asks
-  [r.jina.ai](https://jina.ai/reader/) to render and extract the article, then
-  sanitizes and shows it. It costs the Worker nothing (no CPU, no subrequest),
-  but it is a modest, best-effort win — measured at **+3 of 42 test articles**,
-  and **zero** on hard paywalls — so it always degrades to the alternative links
-  below. It also sends the reader's IP and the article URL to a third party.
-  jina returns the whole page as markdown, so `src/lib/jina.ts` gates on genuine
-  article prose; otherwise subscription/footer chrome renders as a "transcript".
+  Extraction tries schema.org JSON-LD `articleBody` first (far cheaper than a
+  full parse) and falls back to Readability.
+- `GET /api/related?url=` — other outlets covering the same story, from Google
+  News RSS (each result names its publisher in a `<source>` element). Shown when
+  no transcript can be extracted, so those articles end somewhere useful instead
+  of a dead end.
+- **Opt-in reader service**: when extraction fails, the user can choose to send
+  the article's address to [r.jina.ai](https://jina.ai/reader/), which renders
+  and extracts it. It's opt-in because it hands the URL and the reader's IP to a
+  third party and only recovers a small share of articles (**+3 of 42** measured;
+  **zero** on hard paywalls). jina returns the whole page as markdown, so
+  `src/lib/jina.ts` gates on genuine article prose — otherwise subscription and
+  footer chrome would render as a "transcript".
 - Alternative reading links (archive.today, Wayback, Google) are built
   client-side from the resolve payload; archives are linked, never proxied.
 

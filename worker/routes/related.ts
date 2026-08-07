@@ -50,7 +50,7 @@ export async function handleRelated(
         deps.fetch,
         title,
         originHost,
-        env.GOOGLE_NEWS_ORIGIN,
+        env.NEWS_FEED_ORIGIN,
       )
     : [];
 

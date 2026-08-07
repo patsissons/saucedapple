@@ -19,10 +19,12 @@ but serve no CORS headers — so a Cloudflare Worker does the fetching:
   client sanitizes with DOMPurify before rendering.
   Extraction tries schema.org JSON-LD `articleBody` first (far cheaper than a
   full parse) and falls back to Readability.
-- `GET /api/related?url=` — other outlets covering the same story, from Google
-  News RSS (each result names its publisher in a `<source>` element). Shown when
-  no transcript can be extracted, so those articles end somewhere useful instead
-  of a dead end.
+- `GET /api/related?url=` — other outlets covering the same story, from Bing
+  News RSS (each result names its outlet and carries the publisher's real URL,
+  so the links go straight to the article). Shown when no transcript can be
+  extracted, so those articles end somewhere useful instead of a dead end.
+  **Google News is not usable here**: it serves Cloudflare Workers a 503 bot
+  page, verified from a deployed Worker.
 - **Opt-in reader service**: when extraction fails, the user can choose to send
   the article's address to [r.jina.ai](https://jina.ai/reader/), which renders
   and extracts it. It's opt-in because it hands the URL and the reader's IP to a

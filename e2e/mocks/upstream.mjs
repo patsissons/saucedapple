@@ -109,17 +109,21 @@ const server = createServer((req, res) => {
     return send(200, '{"archived_snapshots":{}}', "application/json");
   }
 
-  // Stands in for Google News RSS so the "read elsewhere" row is hermetic.
-  // Item titles echo the query so the same-story similarity filter matches.
-  if (url.pathname === "/google-news/rss/search") {
+  // Stands in for Bing News RSS so the "read elsewhere" row is hermetic.
+  // Mirrors Bing's real shape: an apiclick redirect carrying the publisher URL
+  // in `url=`, plus a <News:Source> outlet name. Titles echo the query so the
+  // same-story similarity filter matches.
+  if (url.pathname === "/bing-news/search") {
     const query = url.searchParams.get("q") ?? "";
+    const item = (article, outlet) =>
+      `<item><title>${query}</title>` +
+      `<link>http://www.bing.com/news/apiclick.aspx?ref=FexRss&amp;url=${encodeURIComponent(article)}&amp;c=1</link>` +
+      `<News:Source>${outlet}</News:Source></item>`;
     return send(
       200,
       `<?xml version="1.0"?><rss><channel>` +
-        `<item><title>${query}</title>` +
-        `<source url="https://www.reuters.com">Reuters</source></item>` +
-        `<item><title>${query} — analysis</title>` +
-        `<source url="https://www.npr.org">NPR</source></item>` +
+        item("https://www.reuters.com/world/story", "Reuters") +
+        item("https://www.npr.org/2026/08/06/story", "NPR") +
         `</channel></rss>`,
       "application/xml",
     );

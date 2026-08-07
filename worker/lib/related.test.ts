@@ -4,8 +4,15 @@ import { findRelatedCoverage } from "./related";
 
 const TITLE = "Cider makers reinvent an industry with single-variety bottles";
 
+// Mirrors Bing News RSS: an apiclick redirect carrying the publisher's real
+// URL in `url=`, plus a <News:Source> outlet name.
 function item(title: string, host: string, name: string): string {
-  return `<item><title>${title}</title><source url="https://${host}">${name}</source></item>`;
+  const article = `https://${host}/story`;
+  return (
+    `<item><title>${title}</title>` +
+    `<link>http://www.bing.com/news/apiclick.aspx?ref=FexRss&amp;url=${encodeURIComponent(article)}&amp;c=1</link>` +
+    `<News:Source>${name}</News:Source></item>`
+  );
 }
 
 function feed(items: string[]): string {
@@ -43,6 +50,8 @@ describe("findRelatedCoverage", () => {
     expect(outlets[0]).toMatchObject({
       outlet: "Reuters",
       host: "reuters.com",
+      // Links straight to the publisher, not through Bing.
+      url: "https://reuters.com/story",
     });
     expect(outlets[1]?.host).toBe("npr.org");
   });
@@ -86,6 +95,20 @@ describe("findRelatedCoverage", () => {
     );
 
     expect(outlets).toHaveLength(1);
+  });
+
+  it("ignores an item whose link has no publisher URL to unwrap", async () => {
+    const outlets = await findRelatedCoverage(
+      stubFetch(
+        feed([
+          `<item><title>${TITLE}</title><link>http://www.bing.com/news/apiclick.aspx?ref=FexRss&amp;c=1</link><News:Source>Mystery</News:Source></item>`,
+        ]),
+      ),
+      TITLE,
+      null,
+    );
+
+    expect(outlets).toEqual([]);
   });
 
   it("decodes HTML entities in titles and outlet names", async () => {

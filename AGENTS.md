@@ -99,6 +99,10 @@ with ESLint, formatted with Prettier.
 3. **User-initiated** reader service (browser, opt-in — see above).
 4. When all of the above fail: `/api/related` other-outlet coverage plus the
    alt-links row (publisher, archive.today, Wayback, Arquivo.pt, searches).
+   `/api/related` uses **Bing** News RSS, not Google: Google serves Cloudflare
+   Workers a 503 bot page. Confirm any new server-side upstream from a deployed
+   Worker — it will answer a laptop and refuse the Worker, and the hermetic e2e
+   mock cannot catch that.
 
 Roughly half of all articles cannot be transcribed by any free route, so rung 4
 is not a consolation prize — it is the expected outcome for a large share of

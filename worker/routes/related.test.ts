@@ -34,7 +34,7 @@ function feed(items: Array<[string, string]>): string {
 
 function relatedRequest(url: string): Request {
   const base = new URL("https://saucedapple.test/api/related");
-  base.searchParams.set("url", url);
+  base.searchParams.set("id", url);
   return new Request(base);
 }
 

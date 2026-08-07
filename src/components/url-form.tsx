@@ -30,7 +30,7 @@ export function UrlForm({ initialValue, busy, onSubmit }: UrlFormProps) {
       <Input
         type="text"
         inputMode="url"
-        placeholder="https://apple.news/…"
+        placeholder="https://apple.news/… or an article id"
         aria-label="Apple News link"
         value={value}
         onChange={(event) => setValue(event.target.value)}

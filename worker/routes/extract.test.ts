@@ -23,7 +23,7 @@ function appleNewsPage(canonical: string): string {
 
 function extractRequest(url: string): Request {
   const base = new URL("https://saucedapple.test/api/extract");
-  base.searchParams.set("url", url);
+  base.searchParams.set("id", url);
   return new Request(base);
 }
 

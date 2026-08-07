@@ -21,8 +21,7 @@ const ARTICLE: ResolveResponse = {
   image: "https://c.apple.news/HeroImage",
 };
 
-const PERMALINK =
-  "https://saucedapple.com/?url=https%3A%2F%2Fapple.news%2FAtPew8L70RNexncdCICfcUg";
+const PERMALINK = "https://saucedapple.com/?id=AtPew8L70RNexncdCICfcUg";
 
 // Prettier wraps long meta tags across lines; collapse whitespace so
 // assertions can use single-line expectations.

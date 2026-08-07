@@ -70,6 +70,6 @@ export const testEnv: Env = {
 
 export function resolveRequest(url: string | null): Request {
   const base = new URL("https://saucedapple.test/api/resolve");
-  if (url !== null) base.searchParams.set("url", url);
+  if (url !== null) base.searchParams.set("id", url);
   return new Request(base);
 }

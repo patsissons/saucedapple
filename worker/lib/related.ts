@@ -1,12 +1,18 @@
 import type { RelatedOutlet } from "../../shared/api";
 import { fetchWithTimeout, readTextCapped } from "./http";
 
-// Same-story discovery. Google News RSS names each result's publisher in a
-// <source url="..."> element, so we get the outlet without decoding Google's
-// opaque redirect links (research/probes/06-same-story). Server-side only:
-// news.google.com sends no CORS headers, so the browser cannot do this.
+// Same-story discovery via Bing News RSS.
+//
+// This used Google News RSS first, which works from a laptop but returns a 503
+// "Sorry..." bot page to Cloudflare Workers — verified from a deployed Worker,
+// so the feature was silently inert in production. Bing answers Workers
+// normally, and its feed is richer: <News:Source> names the outlet, and the
+// real article URL is embedded in the redirect link's `url=` parameter, so we
+// can link straight to the story instead of to a scoped search.
+//
+// Server-side only: bing.com sends no CORS headers for this feed.
 
-const GOOGLE_NEWS_TIMEOUT_MS = 6_000;
+const FEED_TIMEOUT_MS = 6_000;
 const MAX_BODY_BYTES = 400_000;
 const MAX_OUTLETS = 6;
 
@@ -86,7 +92,31 @@ function hostnameOf(url: string): string | null {
 }
 
 const ITEM_TITLE_RE = /<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i;
-const SOURCE_RE = /<source[^>]+url=["']([^"']+)["'][^>]*>([\s\S]*?)<\/source>/i;
+const ITEM_LINK_RE = /<link>([\s\S]*?)<\/link>/i;
+const ITEM_SOURCE_RE = /<News:Source[^>]*>([\s\S]*?)<\/News:Source>/i;
+
+/**
+ * Bing wraps each result in an apiclick redirect that carries the publisher's
+ * real URL in its `url=` parameter. Pull that out so we link to the article
+ * rather than bouncing readers through Bing.
+ */
+function publisherUrlFrom(link: string): string | null {
+  const decoded = decode(link);
+  const match = /[?&]url=([^&]+)/i.exec(decoded);
+  const candidate = match ? safeDecodeUri(match[1]) : decoded;
+  if (!candidate || !/^https?:\/\//i.test(candidate)) return null;
+  // Never hand back a Bing URL as though it were the publisher's.
+  if (/(^|\.)bing\.com$/i.test(hostnameOf(candidate) ?? "")) return null;
+  return candidate;
+}
+
+function safeDecodeUri(value: string): string | null {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return null;
+  }
+}
 
 const ENTITIES: Record<string, string> = {
   amp: "&",
@@ -118,18 +148,14 @@ export async function findRelatedCoverage(
   fetchImpl: typeof fetch,
   title: string,
   originHost: string | null,
-  feedOrigin = "https://news.google.com/rss",
+  feedOrigin = "https://www.bing.com/news",
 ): Promise<RelatedOutlet[]> {
   const query = encodeURIComponent(title);
-  const url = `${feedOrigin}/search?q=${query}&hl=en-US&gl=US&ceid=US:en`;
+  const url = `${feedOrigin}/search?q=${query}&format=rss`;
 
   let body: string;
   try {
-    const response = await fetchWithTimeout(
-      fetchImpl,
-      url,
-      GOOGLE_NEWS_TIMEOUT_MS,
-    );
+    const response = await fetchWithTimeout(fetchImpl, url, FEED_TIMEOUT_MS);
     if (!response.ok) return [];
     body = await readTextCapped(response, MAX_BODY_BYTES);
   } catch {
@@ -142,10 +168,13 @@ export async function findRelatedCoverage(
 
   for (const chunk of body.split("<item>").slice(1)) {
     const itemTitle = decode(ITEM_TITLE_RE.exec(chunk)?.[1] ?? "");
-    const source = SOURCE_RE.exec(chunk);
-    if (!itemTitle || !source) continue;
+    const link = ITEM_LINK_RE.exec(chunk)?.[1];
+    if (!itemTitle || !link) continue;
 
-    const host = hostnameOf(source[1]);
+    const articleUrl = publisherUrlFrom(link);
+    if (!articleUrl) continue;
+
+    const host = hostnameOf(articleUrl);
     if (!host || host === originHost || seen.has(host)) continue;
     if (similarity(wanted, significantTokens(itemTitle)) < MIN_SIMILARITY) {
       continue;
@@ -153,12 +182,10 @@ export async function findRelatedCoverage(
 
     seen.add(host);
     outlets.push({
-      outlet: decode(source[2]) || host,
+      outlet: decode(ITEM_SOURCE_RE.exec(chunk)?.[1] ?? "") || host,
       host,
       title: itemTitle,
-      // Link to the outlet's own coverage via a scoped Google News search;
-      // the per-item links are opaque Google redirects.
-      url: `https://news.google.com/search?q=${encodeURIComponent(`${title} site:${host}`)}`,
+      url: articleUrl,
     });
     if (outlets.length >= MAX_OUTLETS) break;
   }

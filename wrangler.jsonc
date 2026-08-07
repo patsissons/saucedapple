@@ -32,7 +32,7 @@
         "APPLE_NEWS_ORIGIN": "http://127.0.0.1:8799/apple-news",
         "WAYBACK_API_ORIGIN": "http://127.0.0.1:8799/wayback",
         "WEB_ARCHIVE_ORIGIN": "http://127.0.0.1:8799/snapshots",
-        "GOOGLE_NEWS_ORIGIN": "http://127.0.0.1:8799/google-news/rss",
+        "NEWS_FEED_ORIGIN": "http://127.0.0.1:8799/bing-news",
       },
     },
   },

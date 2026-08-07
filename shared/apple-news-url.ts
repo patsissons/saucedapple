@@ -39,3 +39,17 @@ export function parseAppleNewsUrl(input: string): AppleNewsRef | null {
 
   return { id, url: `https://apple.news/${id}` };
 }
+
+/**
+ * Read an article reference from query params. `?id=` is the canonical form —
+ * the "https://apple.news/" prefix is implied, so storing it adds nothing.
+ * `?url=` is the legacy form and is still honoured: those links are already
+ * shared and embedded in social cards, and must keep resolving. Both accept a
+ * bare id or a full URL, since parseAppleNewsUrl handles either.
+ */
+export function parseArticleParams(
+  params: URLSearchParams,
+): AppleNewsRef | null {
+  const raw = params.get("id") ?? params.get("url");
+  return raw ? parseAppleNewsUrl(raw) : null;
+}

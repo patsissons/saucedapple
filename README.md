@@ -3,23 +3,24 @@
 **saucedapple.com** — paste an [Apple News](https://apple.news) link, get free
 ways to read the story: the publisher's own page, public archive snapshots,
 and a best-effort extracted transcript. No Apple News subscription, no
-account, no tracking. Results are permalinkable via `/?url=<apple.news link>`.
+account, no tracking. Results are permalinkable via `/?id=<article id>` (the
+`https://apple.news/` prefix is implied; legacy `/?url=` links still resolve).
 
 ## How it works
 
 apple.news pages embed the publisher's canonical URL and article metadata,
 but serve no CORS headers — so a Cloudflare Worker does the fetching:
 
-- `GET /api/resolve?url=` — fetches the apple.news page once and returns
+- `GET /api/resolve?id=` — fetches the apple.news page once and returns
   `{ canonicalUrl, title, publisher, description, image }`. Articles without
   a publisher website (Apple News+ exclusives) return `canonicalUrl: null`.
-- `GET /api/extract?url=` — best-effort article text: fetches the publisher
+- `GET /api/extract?id=` — best-effort article text: fetches the publisher
   page (falling back to a Wayback Machine snapshot when blocked or
   paywalled) and runs Readability over it. Returns unsanitized HTML — the
   client sanitizes with DOMPurify before rendering.
   Extraction tries schema.org JSON-LD `articleBody` first (far cheaper than a
   full parse) and falls back to Readability.
-- `GET /api/related?url=` — other outlets covering the same story, from Bing
+- `GET /api/related?id=` — other outlets covering the same story, from Bing
   News RSS (each result names its outlet and carries the publisher's real URL,
   so the links go straight to the article). Shown when no transcript can be
   extracted, so those articles end somewhere useful instead of a dead end.
@@ -34,6 +35,9 @@ but serve no CORS headers — so a Cloudflare Worker does the fetching:
   footer chrome would render as a "transcript".
 - Alternative reading links (archive.today, Wayback, Google) are built
   client-side from the resolve payload; archives are linked, never proxied.
+
+Every route takes `?id=<article id>` and also accepts `?url=` with a full
+apple.news link; the input field accepts either form too.
 
 The same Worker serves the React SPA as static assets (Cloudflare "Workers
 with static assets" via `@cloudflare/vite-plugin`). Responses are cached for

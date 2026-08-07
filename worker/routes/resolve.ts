@@ -1,7 +1,7 @@
 import type { Env } from "../cloudflare";
 import { errorResponse } from "../lib/errors";
 import { resolveArticle, type Deps } from "../lib/resolve-article";
-import { parseAppleNewsUrl } from "../../shared/apple-news-url";
+import { parseArticleParams } from "../../shared/apple-news-url";
 
 export type { Deps };
 
@@ -10,8 +10,7 @@ export async function handleResolve(
   env: Env,
   deps: Deps,
 ): Promise<Response> {
-  const input = new URL(request.url).searchParams.get("url") ?? "";
-  const parsed = parseAppleNewsUrl(input);
+  const parsed = parseArticleParams(new URL(request.url).searchParams);
   if (!parsed) {
     return errorResponse("invalid_url", "Not an Apple News link");
   }

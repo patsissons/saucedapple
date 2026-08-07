@@ -7,7 +7,7 @@ test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 test("the copy button puts the permalink on the clipboard", async ({
   page,
 }) => {
-  await page.goto(`/?url=${encodeURIComponent(FREE_URL)}`);
+  await page.goto(`/?id=${FREE_URL.split("/").pop()}`);
   await page.getByRole("button", { name: "Copy link" }).click();
 
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(

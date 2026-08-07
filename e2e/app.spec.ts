@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-const FREE_URL = "https://apple.news/Ae2eFreeArticle0testXX";
-const EXCLUSIVE_URL = "https://apple.news/Ae2eExclusive0testXXXX";
-const PAYWALL_URL = "https://apple.news/Ae2ePaywall00testXXXX";
+const FREE_ID = "Ae2eFreeArticle0testXX";
+const FREE_URL = `https://apple.news/${FREE_ID}`;
+const EXCLUSIVE_ID = "Ae2eExclusive0testXXXX";
+const PAYWALL_ID = "Ae2ePaywall00testXXXX";
 
 test("pasting a link shows the article card, links, and a permalink", async ({
   page,
@@ -23,18 +24,18 @@ test("pasting a link shows the article card, links, and a permalink", async ({
   await expect(
     page.getByRole("link", { name: "Wayback Machine" }),
   ).toBeVisible();
-  await expect(page).toHaveURL(`/?url=${encodeURIComponent(FREE_URL)}`);
+  await expect(page).toHaveURL(`/?id=${FREE_ID}`);
 });
 
-test("a ?url= permalink resolves on load", async ({ page }) => {
-  await page.goto(`/?url=${encodeURIComponent(FREE_URL)}`);
+test("an ?id= permalink resolves on load", async ({ page }) => {
+  await page.goto(`/?id=${FREE_ID}`);
   await expect(
     page.getByText("How Cider Makers Reinvented an Industry"),
   ).toBeVisible();
 });
 
 test("the reader view loads the extracted transcript", async ({ page }) => {
-  await page.goto(`/?url=${encodeURIComponent(FREE_URL)}`);
+  await page.goto(`/?id=${FREE_ID}`);
   await page.getByRole("button", { name: /read transcript/i }).click();
 
   await expect(
@@ -46,7 +47,7 @@ test("the reader view loads the extracted transcript", async ({ page }) => {
 test("a failed extraction explains itself and offers other outlets", async ({
   page,
 }) => {
-  await page.goto(`/?url=${encodeURIComponent(PAYWALL_URL)}`);
+  await page.goto(`/?id=${PAYWALL_ID}`);
   await page.getByRole("button", { name: /read transcript/i }).click();
 
   // Says what actually happened, rather than one generic failure line.
@@ -90,7 +91,7 @@ test("the opt-in reader service can recover a blocked article", async ({
     }),
   );
 
-  await page.goto(`/?url=${encodeURIComponent(PAYWALL_URL)}`);
+  await page.goto(`/?id=${PAYWALL_ID}`);
   await page.getByRole("button", { name: /read transcript/i }).click();
   await page.getByRole("button", { name: /try a reader service/i }).click();
 
@@ -101,6 +102,19 @@ test("the opt-in reader service can recover a blocked article", async ({
   await expect(
     page.getByRole("link", { name: /reader service/i }),
   ).toBeVisible();
+});
+
+// Legacy links are already shared publicly, so they must keep resolving and
+// should be rewritten to the canonical ?id= form.
+test("a legacy ?url= permalink still resolves and is rewritten", async ({
+  page,
+}) => {
+  await page.goto(`/?url=${encodeURIComponent(FREE_URL)}`);
+
+  await expect(
+    page.getByText("How Cider Makers Reinvented an Industry"),
+  ).toBeVisible();
+  await expect(page).toHaveURL(`/?id=${FREE_ID}`);
 });
 
 test("an invalid link shows an inline error", async ({ page }) => {
@@ -114,7 +128,7 @@ test("an invalid link shows an inline error", async ({ page }) => {
 test("a News+ exclusive explains itself without a reader view", async ({
   page,
 }) => {
-  await page.goto(`/?url=${encodeURIComponent(EXCLUSIVE_URL)}`);
+  await page.goto(`/?id=${EXCLUSIVE_ID}`);
 
   await expect(page.getByText(/Apple News\+ exclusive/i)).toBeVisible();
   await expect(

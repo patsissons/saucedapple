@@ -1,5 +1,5 @@
 import type { RelatedResponse } from "../../shared/api";
-import { parseAppleNewsUrl } from "../../shared/apple-news-url";
+import { parseArticleParams } from "../../shared/apple-news-url";
 import type { Env } from "../cloudflare";
 import { cacheGet, cachePut } from "../lib/cache";
 import { errorResponse } from "../lib/errors";
@@ -23,8 +23,7 @@ export async function handleRelated(
   env: Env,
   deps: Deps,
 ): Promise<Response> {
-  const input = new URL(request.url).searchParams.get("url") ?? "";
-  const parsed = parseAppleNewsUrl(input);
+  const parsed = parseArticleParams(new URL(request.url).searchParams);
   if (!parsed) {
     return errorResponse("invalid_url", "Not an Apple News link");
   }

@@ -20,7 +20,7 @@ test("a valid permalink serves article-specific OpenGraph tags", async ({
   request,
 }) => {
   const html = flat(
-    await (await request.get(`/?url=${encodeURIComponent(FREE_URL)}`)).text(),
+    await (await request.get(`/?id=${FREE_URL.split("/").pop()}`)).text(),
   );
   expect(html).toContain(
     'property="og:title" content="How Cider Makers Reinvented an Industry — The Orchard Report"',
@@ -34,9 +34,7 @@ test("a valid permalink serves article-specific OpenGraph tags", async ({
 test("an invalid permalink falls back to the site-default tags", async ({
   request,
 }) => {
-  const html = flat(
-    await (await request.get("/?url=https://example.com/nope")).text(),
-  );
+  const html = flat(await (await request.get("/?id=not-an-article")).text());
   expect(html).toContain('property="og:title" content="Sauced Apple"');
   expect(html).toContain('property="og:type" content="website"');
 });

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ResolveResponse } from "../../shared/api";
-import { parseAppleNewsUrl } from "../../shared/apple-news-url";
+import {
+  parseAppleNewsUrl,
+  parseArticleParams,
+} from "../../shared/apple-news-url";
 import { resolveArticle } from "@/lib/api";
 
 export type ArticleState =
@@ -9,14 +12,19 @@ export type ArticleState =
   | { status: "resolved"; url: string; article: ResolveResponse }
   | { status: "error"; url: string; code: string; message: string };
 
-function urlFromLocation(): string | null {
-  return new URL(window.location.href).searchParams.get("url");
+/** Build the canonical permalink for an article id. */
+function permalinkFor(id: string): URL {
+  const target = new URL(window.location.href);
+  target.search = "";
+  target.searchParams.set("id", id);
+  return target;
 }
 
 /**
- * Resolve-state machine synced with the ?url= query param: submitting
- * pushes a permalink, and loading a permalink (or navigating history)
- * resolves automatically.
+ * Resolve-state machine synced with the ?id= query param: submitting pushes a
+ * permalink, and loading a permalink (or navigating history) resolves
+ * automatically. Legacy ?url= permalinks still resolve and are rewritten to
+ * ?id= in place, so old shared links keep working but stop propagating.
  */
 export function useArticle() {
   const [state, setState] = useState<ArticleState>({ status: "idle" });
@@ -54,12 +62,11 @@ export function useArticle() {
   const submit = useCallback(
     (input: string) => {
       const parsed = parseAppleNewsUrl(input);
-      const canonical = parsed?.url ?? input;
-      const target = new URL(window.location.href);
-      target.search = "";
-      target.searchParams.set("url", canonical);
-      if (target.href !== window.location.href) {
-        window.history.pushState({}, "", target);
+      if (parsed) {
+        const target = permalinkFor(parsed.id);
+        if (target.href !== window.location.href) {
+          window.history.pushState({}, "", target);
+        }
       }
       void resolve(input);
     },
@@ -68,12 +75,17 @@ export function useArticle() {
 
   useEffect(() => {
     const fromLocation = () => {
-      const url = urlFromLocation();
-      if (url) {
-        void resolve(url);
-      } else {
+      const params = new URL(window.location.href).searchParams;
+      const parsed = parseArticleParams(params);
+      if (!parsed) {
         setState({ status: "idle" });
+        return;
       }
+      // Normalize a legacy ?url= permalink to ?id= without adding history.
+      if (!params.has("id")) {
+        window.history.replaceState({}, "", permalinkFor(parsed.id));
+      }
+      void resolve(parsed.url);
     };
     fromLocation();
     window.addEventListener("popstate", fromLocation);

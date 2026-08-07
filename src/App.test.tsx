@@ -66,9 +66,7 @@ describe("App", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       `/api/resolve?url=${encodeURIComponent(ARTICLE_URL)}`,
     );
-    expect(window.location.search).toBe(
-      `?url=${encodeURIComponent(ARTICLE_URL)}`,
-    );
+    expect(window.location.search).toBe(`?id=${ID}`);
   });
 
   it("shows an error for an invalid link without calling the API", async () => {
@@ -88,7 +86,19 @@ describe("App", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("auto-resolves a ?url= permalink on load", async () => {
+  it("auto-resolves an ?id= permalink on load", async () => {
+    stubResolve(ARTICLE);
+    window.history.replaceState({}, "", `/?id=${ID}`);
+    render(<App />);
+
+    expect(
+      await screen.findByText("How Cider Makers Reinvented an Industry"),
+    ).toBeInTheDocument();
+  });
+
+  // Legacy links are already shared and embedded in social cards, so they must
+  // keep resolving — but they get rewritten so the old form stops spreading.
+  it("resolves a legacy ?url= permalink and rewrites it to ?id=", async () => {
     stubResolve(ARTICLE);
     window.history.replaceState(
       {},
@@ -100,6 +110,21 @@ describe("App", () => {
     expect(
       await screen.findByText("How Cider Makers Reinvented an Industry"),
     ).toBeInTheDocument();
+    expect(window.location.search).toBe(`?id=${ID}`);
+  });
+
+  it("accepts a bare article id typed into the form", async () => {
+    const user = userEvent.setup();
+    stubResolve(ARTICLE);
+    render(<App />);
+
+    await user.type(screen.getByLabelText("Apple News link"), ID);
+    await user.click(screen.getByRole("button", { name: "Sauce it!" }));
+
+    expect(
+      await screen.findByText("How Cider Makers Reinvented an Industry"),
+    ).toBeInTheDocument();
+    expect(window.location.search).toBe(`?id=${ID}`);
   });
 
   it("copies the current page link from the global copy button", async () => {
@@ -141,11 +166,7 @@ describe("App", () => {
       canonicalUrl: null,
       publisher: "Apple News+ Magazine",
     });
-    window.history.replaceState(
-      {},
-      "",
-      `/?url=${encodeURIComponent(ARTICLE_URL)}`,
-    );
+    window.history.replaceState({}, "", `/?id=${ID}`);
     render(<App />);
 
     expect(

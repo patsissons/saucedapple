@@ -1,54 +1,80 @@
 # P11 — r.jina.ai reader proxy
 
-**Verdict: SHIP (client-side) — the single biggest coverage win in the study.**
-r.jina.ai fetches + renders (incl. JS) + extracts an article to clean markdown,
-free, no API key. Combined with P4 (it is CORS-open and browser-fetchable), it
-has a client-side deployment path that costs the Worker **zero CPU** and fetches
-from the **user's residential IP**.
+**Verdict: MARGINAL — recovers +3 of 42 articles (50% → 57%). It does NOT crack
+paywalls.** This file supersedes an earlier version of these findings that
+claimed "class C 0% → 67%". That claim was **wrong** — see the correction
+below, which is the most important thing on this page.
 
-## Result — over the publisher corpus (server-side run)
+## The measurement bug (why the first result was wrong)
 
-| Class | Baseline (Readability) | **P11 jina** | Δ |
-| --- | --- | --- | --- |
-| A (open) | 80% (12/15) | **100% (15/15)** | +20 |
-| B (soft/metered) | 50% (9/18) | **78% (14/18)** | +28 |
-| C (hard/bot) | **0% (0/9)** | **67% (6/9)** | **+67** |
+The first pass scored success on the **raw word count of jina's output**. jina
+converts the *whole page* to markdown, so navigation, subscription offers,
+related-article teasers, cookie/consent screens, and footers all counted as
+"article text". Paywalled pages therefore scored as 900–1300 "word" wins while
+containing **zero article prose**. The FT's output, in full, is subscription
+and footer boilerplate ("Then $75 per month… © THE FINANCIAL TIMES LTD").
 
-The class-C wins are **real full text**, not stubs (gate: ≥250 words + no
-block-marker): FT 3/3 (3443 / 1626 / 1632 words) and Economist 3/3 (1111 / 967 /
-964 words). **WSJ remains impervious** — jina returns a 23-word stub for all
-three WSJ URLs, consistent with WSJ being the hardest bot-hardened publisher.
+The fix (`research/lib/article-text.ts`) measures **only prose that plausibly
+belongs to the article**: paragraphs ≥100 chars, minus chrome/consent/footer
+boilerplate; success needs ≥400 article words in ≥3 paragraphs. It was
+validated against hand-checked ground truth (open articles must pass,
+paywall stubs must fail) before any number below was trusted.
 
-So jina converts the paywall picture from "class C is hopeless" to "class C is
-mostly readable except WSJ." That is a category change in what the app can do.
+The gap between the two metrics is enormous — e.g. `ft.com` raw **2628 w** vs
+article **252 w**; `economist.com` raw **697 w** vs article **0 w**.
 
-## Why it wins where we can't
+## Corrected results
 
-- It runs its **own** rendering + fetching infrastructure, so it executes the JS
-  shells that defeat our plain fetch, and it isn't fetching from a Cloudflare IP.
-- P4 proved the browser can call `r.jina.ai/<url>` directly (21 KB read
-  cross-origin), so the **recommended deployment is client-side**: the SPA
-  fetches jina, the Worker never touches it. That sidesteps both the 10 ms CPU
-  budget and the laptop-vs-Worker IP trap in one move.
+| Class | Baseline | jina | Union | **jina recovers baseline failures** |
+| --- | --- | --- | --- | --- |
+| A open | 12/15 | 13/15 | 13/15 | **+1** |
+| B soft paywall | 9/18 | 8/18 | 11/18 | **+2** |
+| C hard paywall | 0/9 | **0/9** | 0/9 | **+0** |
+| **All** | **21/42 (50%)** | 21/42 | **24/42 (57%)** | **+3 items** |
 
-## Risks / honesty (the reason it's a fallback rung, not the only strategy)
+- **Class C is a flat zero.** WSJ returns nothing at all; FT and The Economist
+  return only chrome plus, at best, the free opening paragraph (47–252 words).
+  This **restores the original AGENTS.md position**: WSJ-class hard paywalls are
+  unservable by free tooling. My earlier finding wrongly contradicted it.
+- **Class B is inconsistent**: Wired/LA Times/New Yorker often come back with
+  real full text; NYT is blocked outright (30 words); the Atlantic returns a
+  ~330-word preview. Net +2 recoveries, and jina *loses* 3 that the baseline
+  gets — it is not a superset.
+- Class A is already handled by the baseline, so its wins are near-worthless.
 
-- **Third-party dependency.** Free tier ~20 rpm, no key today, but terms/limits
-  can change; it can rate-limit or disappear. Must degrade gracefully.
-- **Latency.** It renders JS, so it is seconds, not milliseconds — acceptable
-  as a user-initiated "try harder" step with progress UX, not for an instant
-  first paint.
-- **Attribution/ToS.** It re-serves publisher content; surface it as a reader
-  route with clear provenance, and keep the direct-publisher and archive routes
-  ahead of it where they work.
-- **WSJ-class still unsolved** — needs P9 (browser rendering) or the
-  archive.today link, if anything.
+## Other corrected assumptions
 
-## Integration (fits the graduated fallback ladder)
+- **There is NO "user's residential IP" advantage.** I claimed the client-side
+  call wins because it originates from the user's IP. Wrong: the browser cannot
+  fetch publishers (CORS), so **jina fetches from its own infrastructure** —
+  Google Cloud, per its response headers (`via: 1.1 google`,
+  `x-cloud-trace-context`). The publisher sees a datacenter IP either way. The
+  only real client-side benefits are **zero Worker CPU and zero subrequests**.
+- **Output is deterministic per call** (3 identical repeats) but **varies over
+  time** as jina's cache turns over — the Atlantic returned a full article in
+  one session and a 329-word preview later. Coverage is not stable.
+- **Rate limit confirmed from response headers**: `x-ratelimit-limit = 20, 20;w=60`
+  (20 requests/minute), and a `x-usage-tokens` counter — i.e. metered usage that
+  could be gated later.
 
-Client-side rung, after "publisher fetch + Readability" fails or returns a
-stub: `fetch(\`https://r.jina.ai/${canonicalUrl}\`)` from the SPA, render the
-returned markdown through the existing sanitize path. Show a "fetching a clean
-copy…" progress state. Because it's client-side it needs no Worker CPU and no
-new server dependency; the only server change is optionally passing the
-canonical URL to the client (already in the resolve payload).
+## Recommendation
+
+**Park, or ship only as an explicitly opt-in step.** +3 of 42 articles (7
+percentage points) is a real but modest gain, weighed against:
+
+- a **third-party dependency** with a 20 rpm shared limit and shifting terms;
+- **seconds of latency** (it renders JS);
+- **a privacy cost that conflicts with the product's stated positioning** — the
+  app advertises "no account, no tracking", but this sends the user's IP and the
+  URL they are reading to Jina AI. That is a product decision, not a technical
+  one, and it should be disclosed if shipped.
+
+If shipped, it must use the corrected prose detection — otherwise it renders
+FT/NYT paywall boilerplate to users as a "transcript".
+
+## Reproduce
+
+```sh
+PROBE_REPLAY=1 npx tsx research/probes/11-jina-reader/run.ts   # offline re-score
+npx tsx research/lib/report.ts P11 P0
+```

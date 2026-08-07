@@ -1,31 +1,31 @@
 // P11 r.jina.ai — free reader proxy that fetches + renders (incl. JS) + extracts
-// an article to clean markdown, no API key. P4 proved it is ALSO browser-
-// fetchable (CORS-open), so it has a client-side deployment path: the user's
-// browser calls r.jina.ai/<url> directly — zero Worker CPU, residential IP
-// (beats Cloudflare-IP publisher blocks). This probe measures its hit rate and
-// latency over the corpus, with attention to class C (WSJ/FT) where the
-// baseline scores 0%.
+// an article to clean markdown, no API key. P4 proved it is browser-fetchable
+// (CORS-open), so it can run client-side: zero Worker CPU and zero Worker
+// subrequests. NOTE: the browser still cannot fetch publishers itself (CORS),
+// so jina does the fetching from ITS OWN infrastructure (Google Cloud, per its
+// response headers) — there is NO "user's residential IP" advantage, contrary
+// to this probe's original claim.
 //
 //   npx tsx research/probes/11-jina-reader/run.ts
 //
 // ToS note: r.jina.ai is a third-party service (free tier ~20 rpm, no key). It
 // is a shared dependency and its free terms can change — flagged in FINDINGS.
 
+import { analyzeProse, isUsableTranscript } from "../../lib/article-text.ts";
 import { loadPublishers } from "../../lib/corpus.ts";
 import { politeFetch } from "../../lib/fetcher.ts";
-import { emit, type ProbeResult, wordCount } from "../../lib/metrics.ts";
+import { emit, type ProbeResult } from "../../lib/metrics.ts";
 
 const PROBE_ID = "P11-jina";
 const RESULTS = new URL("../../results/11-jina-reader.jsonl", import.meta.url)
   .pathname;
 
-// jina returns markdown; a real article is a few hundred+ words. Below this is
-// an error page / paywall stub / bot wall.
-const MIN_WORDS = 250;
-
-// Signals that jina returned a block/error rather than an article.
-const ERROR_MARKERS =
-  /(you (have|'ve) been blocked|enable javascript|are you a robot|access denied|subscribe to (read|continue)|402 payment required|rate limit)/i;
+// CORRECTED METRIC. The first pass scored success on jina's RAW word count,
+// which counts navigation, subscription offers, related-article teasers and
+// footers as article text — so paywalled pages scored as 900-word "wins" while
+// containing zero article prose (FT returns "Then $75 per month… © THE
+// FINANCIAL TIMES LTD"). Success now requires genuine article prose; see
+// research/lib/article-text.ts.
 
 async function main(): Promise<void> {
   // Prioritize the hard classes — that's where jina must earn its place.
@@ -48,9 +48,10 @@ async function main(): Promise<void> {
         timeoutMs: 30_000, // jina renders JS; it can be slow
         maxBytes: 2_000_000,
       });
-      const words = wordCount(res.body);
-      const looksBlocked = ERROR_MARKERS.test(res.body.slice(0, 4000));
-      const ok = res.ok && words >= MIN_WORDS && !looksBlocked;
+      // Strip jina's metadata preamble, then measure ARTICLE prose only.
+      const body = res.body.split("Markdown Content:")[1] ?? res.body;
+      const prose = analyzeProse(body);
+      const ok = res.ok && isUsableTranscript(prose);
       row = {
         probeId: PROBE_ID,
         corpusId: item.id,
@@ -59,14 +60,14 @@ async function main(): Promise<void> {
         ok,
         httpStatus: res.status,
         bytes: res.bytes,
-        wordCount: words,
+        wordCount: prose.articleWords,
         latencyMs: res.latencyMs,
         subrequests: 1,
-        notes: looksBlocked ? "jina returned a block/stub" : undefined,
+        notes: `raw=${prose.rawWords}w article=${prose.articleWords}w paras=${prose.articleParagraphs} chrome=${prose.chromeParagraphs}`,
         ts,
       };
       console.error(
-        `  ${item.class} ${item.publisherHost} -> ${ok ? "OK" : "fail"} ${words}w ${res.status} ${res.fromCache ? "(cache)" : res.latencyMs + "ms"}`,
+        `  ${item.class} ${String(item.publisherHost).padEnd(22)} -> ${ok ? "OK  " : "fail"} article=${String(prose.articleWords).padStart(4)}w (raw=${String(prose.rawWords).padStart(4)}w) ${res.fromCache ? "cache" : res.latencyMs + "ms"}`,
       );
     } catch (e) {
       row = {

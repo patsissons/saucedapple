@@ -7,6 +7,10 @@ import { findRelatedCoverage } from "../lib/related";
 import { resolveArticle, type Deps } from "../lib/resolve-article";
 
 const RELATED_TTL_SECONDS = 86_400;
+// An empty list is usually "not indexed yet" or a transient upstream problem,
+// not a durable fact — caching it for a day would hide coverage that appears
+// minutes later. Keep it just long enough to avoid hammering the feed.
+const EMPTY_TTL_SECONDS = 300;
 
 /**
  * Other outlets covering the same story. This is the "read elsewhere" rung:
@@ -58,6 +62,12 @@ export async function handleRelated(
   const response = Response.json(body, {
     headers: { "cache-control": "public, max-age=300" },
   });
-  cachePut(deps.cache, cacheKey, response, RELATED_TTL_SECONDS, deps.waitUntil);
+  cachePut(
+    deps.cache,
+    cacheKey,
+    response,
+    outlets.length > 0 ? RELATED_TTL_SECONDS : EMPTY_TTL_SECONDS,
+    deps.waitUntil,
+  );
   return response;
 }

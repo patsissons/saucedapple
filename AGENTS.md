@@ -98,7 +98,10 @@ with ESLint, formatted with Prettier.
 2. Wayback snapshot, same extractors (Worker).
 3. **User-initiated** reader service (browser, opt-in — see above).
 4. When all of the above fail: `/api/related` other-outlet coverage plus the
-   alt-links row (publisher, archive.today, Wayback, Arquivo.pt, searches).
+   alt-links row (publisher, archive.today, Wayback, searches). Alt-links make
+   **no API calls** — they are derived from the resolve payload alone — so only
+   list archives that are worth linking blind. Arquivo.pt was tried and removed:
+   it holds nothing for most US/UK news, so the link was usually dead.
    `/api/related` uses **Bing** News RSS, not Google: Google serves Cloudflare
    Workers a 503 bot page. Confirm any new server-side upstream from a deployed
    Worker — it will answer a laptop and refuse the Worker, and the hermetic e2e

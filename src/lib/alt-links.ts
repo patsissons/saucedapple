@@ -17,10 +17,6 @@ function hostnameOf(url: string): string | null {
 
 const ARCHIVE_TODAY = "https://archive.ph";
 const WAYBACK = "https://web.archive.org/web";
-// The Portuguese national web archive: open, and it holds snapshots the
-// Wayback Machine lacks for a meaningful share of paywalled articles
-// (~37% in research/probes/08-archive-fed). Linked, never fetched.
-const ARQUIVO = "https://arquivo.pt/wayback";
 
 /**
  * Free places to read the story, derived entirely from the resolve payload
@@ -50,12 +46,6 @@ export function buildAltLinks(article: ResolveResponse): AltLink[] {
       label: "Wayback Machine",
       href: `${WAYBACK}/${canonicalUrl}`,
       description: "Internet Archive snapshot",
-    });
-    links.push({
-      key: "arquivo",
-      label: "Arquivo.pt",
-      href: `${ARQUIVO}/*/${canonicalUrl}`,
-      description: "Another public web archive, with different coverage",
     });
 
     if (title && host) {

@@ -65,6 +65,7 @@ export const testEnv: Env = {
   APPLE_NEWS_ORIGIN: "https://apple-news.test",
   WAYBACK_API_ORIGIN: "https://wayback.test",
   WEB_ARCHIVE_ORIGIN: "https://snapshots.test",
+  NEWS_FEED_ORIGIN: "https://news.test",
 };
 
 export function resolveRequest(url: string | null): Request {

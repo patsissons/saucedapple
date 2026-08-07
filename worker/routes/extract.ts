@@ -5,6 +5,7 @@ import { cacheGet, cachePut } from "../lib/cache";
 import { errorResponse } from "../lib/errors";
 import { isBlockedStatus, MIN_TEXT_LENGTH } from "../lib/extract/detect";
 import { extractArticle, type ExtractedArticle } from "../lib/extract/extract";
+import { extractJsonLdArticle } from "../lib/extract/json-ld";
 import { fetchWithTimeout, readTextCapped } from "../lib/http";
 import { resolveArticle, type Deps } from "../lib/resolve-article";
 import { findWaybackSnapshot } from "../lib/wayback";
@@ -32,10 +33,20 @@ async function attemptExtraction(
   if (isBlockedStatus(response.status) || !response.ok) return null;
 
   const html = await readTextCapped(response, MAX_BODY_BYTES);
-  const article = extractArticle(html, response.url || url);
+  const finalUrl = response.url || url;
+
+  // Fast path: many publishers ship the full body in JSON-LD, which is far
+  // cheaper to read than a Readability parse. Fall through when it is absent
+  // or too short — JSON-LD often omits subheads and captions.
+  const fromJsonLd = extractJsonLdArticle(html, finalUrl);
+  if (fromJsonLd && fromJsonLd.textLength >= MIN_TEXT_LENGTH) {
+    return { article: fromJsonLd, finalUrl };
+  }
+
+  const article = extractArticle(html, finalUrl);
   if (!article || article.textLength < MIN_TEXT_LENGTH) return null;
 
-  return { article, finalUrl: response.url || url };
+  return { article, finalUrl };
 }
 
 export async function handleExtract(

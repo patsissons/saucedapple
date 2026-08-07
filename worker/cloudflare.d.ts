@@ -13,6 +13,7 @@ export interface Env {
   APPLE_NEWS_ORIGIN?: string;
   WAYBACK_API_ORIGIN?: string;
   WEB_ARCHIVE_ORIGIN?: string;
+  GOOGLE_NEWS_ORIGIN?: string;
 }
 
 export interface ExecutionContext {

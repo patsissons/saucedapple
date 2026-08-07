@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const FREE_URL = "https://apple.news/Ae2eFreeArticle0testXX";
 const EXCLUSIVE_URL = "https://apple.news/Ae2eExclusive0testXXXX";
+const PAYWALL_URL = "https://apple.news/Ae2ePaywall00testXXXX";
 
 test("pasting a link shows the article card, links, and a permalink", async ({
   page,
@@ -40,6 +41,66 @@ test("the reader view loads the extracted transcript", async ({ page }) => {
     page.getByText(/the cider industry moved at the speed/i),
   ).toBeVisible();
   await expect(page.getByText(/extracted from/i)).toBeVisible();
+});
+
+test("a failed extraction explains itself and offers other outlets", async ({
+  page,
+}) => {
+  await page.goto(`/?url=${encodeURIComponent(PAYWALL_URL)}`);
+  await page.getByRole("button", { name: /read transcript/i }).click();
+
+  // Says what actually happened, rather than one generic failure line.
+  await expect(page.getByText(/likely paywalled/i)).toBeVisible();
+
+  // The "read elsewhere" row: other outlets covering the same story.
+  await expect(
+    page.getByText(/other outlets covering this story/i),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /Reuters/ })).toBeVisible();
+
+  // The third-party reader is offered, not used automatically.
+  await expect(
+    page.getByRole("button", { name: /try a reader service/i }),
+  ).toBeVisible();
+});
+
+test("the opt-in reader service can recover a blocked article", async ({
+  page,
+}) => {
+  // Intercept the browser's call to r.jina.ai so the suite stays hermetic.
+  await page.route("https://r.jina.ai/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "text/plain",
+      body: [
+        "Title: A Paywalled Investigation",
+        "",
+        "URL Source: https://publisher.test/paywalled",
+        "",
+        "Markdown Content:",
+        "# A Paywalled Investigation",
+        // Four substantial paragraphs — the reader requires real article prose
+        // (>=3 paragraphs, >=400 words), so a short stub would be rejected.
+        ...Array.from({ length: 4 }, () =>
+          "The reader recovered the full story from your own browser. ".repeat(
+            12,
+          ),
+        ),
+      ].join("\n"),
+    }),
+  );
+
+  await page.goto(`/?url=${encodeURIComponent(PAYWALL_URL)}`);
+  await page.getByRole("button", { name: /read transcript/i }).click();
+  await page.getByRole("button", { name: /try a reader service/i }).click();
+
+  // The fixture has several paragraphs, so scope to the first match.
+  await expect(
+    page.getByText(/the reader recovered the full story/i).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /reader service/i }),
+  ).toBeVisible();
 });
 
 test("an invalid link shows an inline error", async ({ page }) => {

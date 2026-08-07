@@ -17,6 +17,19 @@ but serve no CORS headers — so a Cloudflare Worker does the fetching:
   page (falling back to a Wayback Machine snapshot when blocked or
   paywalled) and runs Readability over it. Returns unsanitized HTML — the
   client sanitizes with DOMPurify before rendering.
+  Extraction tries schema.org JSON-LD `articleBody` first (far cheaper than a
+  full parse) and falls back to Readability.
+- `GET /api/related?url=` — other outlets covering the same story, from Google
+  News RSS (each result names its publisher in a `<source>` element). Shown when
+  no transcript can be extracted, so those articles end somewhere useful instead
+  of a dead end.
+- **Opt-in reader service**: when extraction fails, the user can choose to send
+  the article's address to [r.jina.ai](https://jina.ai/reader/), which renders
+  and extracts it. It's opt-in because it hands the URL and the reader's IP to a
+  third party and only recovers a small share of articles (**+3 of 42** measured;
+  **zero** on hard paywalls). jina returns the whole page as markdown, so
+  `src/lib/jina.ts` gates on genuine article prose — otherwise subscription and
+  footer chrome would render as a "transcript".
 - Alternative reading links (archive.today, Wayback, Google) are built
   client-side from the resolve payload; archives are linked, never proxied.
 
@@ -24,12 +37,12 @@ The same Worker serves the React SPA as static assets (Cloudflare "Workers
 with static assets" via `@cloudflare/vite-plugin`). Responses are cached for
 24h with the Cache API.
 
-**Known limitation**: bot-hardened paywalled publishers (e.g. WSJ) block
-server-side fetches outright and serve JS-shell pages with no
-server-rendered text — even their Wayback snapshots are empty shells. For
-those, transcript extraction fails by design and the alternative links
-(especially archive.today, which executes JS when capturing) are the way
-to read the story. See AGENTS.md before "fixing" this.
+**Known limitation**: hard-paywalled publishers (WSJ, FT, The Economist) block
+every free route — server fetch, Wayback, and the client-side reader, which
+returns only subscription/footer boilerplate for them. For those, the
+alternative links (especially archive.today, which executes JS when capturing,
+opened by a human) are the way to read the story. See AGENTS.md before
+"fixing" this.
 
 ## Setup
 

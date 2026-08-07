@@ -72,9 +72,37 @@ with ESLint, formatted with Prettier.
 - Do NOT pre-reject pages on the `isAccessibleForFree: false` JSON-LD
   marker — many sites declare it while shipping full text for SEO. The
   extracted-text-length gate (MIN_TEXT_LENGTH) is the real paywall signal.
-- If WSJ-class transcripts are ever wanted: Cloudflare Browser Rendering
-  API (has a free allotment) or archive.today mirror rotation are the v2
-  candidates. Both were deliberately deferred.
+- **Opt-in reader service (r.jina.ai)**: `src/lib/jina.ts`, wired into
+  `src/components/reader-view.tsx`. Measured honestly it recovers **+3 of 42**
+  test articles (50%→57%) and **0 of 9 hard paywalls** — a modest win, not a
+  paywall bypass. Keep it **opt-in**: it discloses the article URL and reader's
+  IP to a third party, which sits against the app's "no tracking" promise.
+  Two more rules if you touch it:
+  1. **Gate on article prose, never on length.** jina returns the WHOLE PAGE as
+     markdown, so nav/subscription/consent/footer text will pass any length
+     check and render as a fake "transcript" (the FT's entire output is
+     "Then $75 per month… © THE FINANCIAL TIMES LTD"). An earlier research pass
+     made exactly this mistake and wrongly concluded jina cracked paywalls.
+  2. It is a third party that receives the reader's IP and article URL — weigh
+     against the app's "no tracking" positioning; always degrade to alt-links.
+     Note there is NO "residential IP" benefit: the browser cannot fetch publishers
+     (CORS), so jina fetches from its own infra. Client-side buys only zero Worker
+     CPU/subrequests.
+- Cloudflare Browser Rendering runs on Cloudflare infra, so it inherits the same
+  IP block; it is not a WSJ answer either. The archive.today link, opened by a
+  human, remains the only realistic path for hard paywalls.
+
+## Extraction ladder (what runs, in order)
+
+1. Publisher page — JSON-LD `articleBody` fast-path, else Readability (Worker).
+2. Wayback snapshot, same extractors (Worker).
+3. **User-initiated** reader service (browser, opt-in — see above).
+4. When all of the above fail: `/api/related` other-outlet coverage plus the
+   alt-links row (publisher, archive.today, Wayback, Arquivo.pt, searches).
+
+Roughly half of all articles cannot be transcribed by any free route, so rung 4
+is not a consolation prize — it is the expected outcome for a large share of
+traffic and deserves the same care as the extractors.
 
 ## Shipping changes
 

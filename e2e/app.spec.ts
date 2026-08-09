@@ -17,7 +17,7 @@ test("pasting a link shows the article card, links, and a permalink", async ({
   await page.getByRole("button", { name: "Sauce it!" }).click();
 
   await expect(
-    page.getByText("How Cider Makers Reinvented an Industry"),
+    page.getByText("How Cider Makers Reinvented an Industry").first(),
   ).toBeVisible();
   await expect(page.getByText("The Orchard Report")).toBeVisible();
   await expect(page.getByRole("link", { name: "archive.today" })).toBeVisible();
@@ -30,7 +30,7 @@ test("pasting a link shows the article card, links, and a permalink", async ({
 test("an ?id= permalink resolves on load", async ({ page }) => {
   await page.goto(`/?id=${FREE_ID}`);
   await expect(
-    page.getByText("How Cider Makers Reinvented an Industry"),
+    page.getByText("How Cider Makers Reinvented an Industry").first(),
   ).toBeVisible();
 });
 
@@ -44,7 +44,19 @@ test("the reader view loads the extracted transcript", async ({ page }) => {
   await expect(page.getByText(/extracted from/i)).toBeVisible();
 });
 
-test("a failed extraction explains itself and offers other outlets", async ({
+test("other outlets are offered up front, without opening the transcript", async ({
+  page,
+}) => {
+  await page.goto(`/?id=${PAYWALL_ID}`);
+
+  // The "read elsewhere" row shows above the collapsed transcript expander.
+  await expect(
+    page.getByText(/other outlets covering this story/i),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /Reuters/ })).toBeVisible();
+});
+
+test("a failed extraction explains itself and offers a reader", async ({
   page,
 }) => {
   await page.goto(`/?id=${PAYWALL_ID}`);
@@ -52,12 +64,6 @@ test("a failed extraction explains itself and offers other outlets", async ({
 
   // Says what actually happened, rather than one generic failure line.
   await expect(page.getByText(/likely paywalled/i)).toBeVisible();
-
-  // The "read elsewhere" row: other outlets covering the same story.
-  await expect(
-    page.getByText(/other outlets covering this story/i),
-  ).toBeVisible();
-  await expect(page.getByRole("link", { name: /Reuters/ })).toBeVisible();
 
   // The third-party reader is offered, not used automatically.
   await expect(
@@ -112,7 +118,7 @@ test("a legacy ?url= permalink still resolves and is rewritten", async ({
   await page.goto(`/?url=${encodeURIComponent(FREE_URL)}`);
 
   await expect(
-    page.getByText("How Cider Makers Reinvented an Industry"),
+    page.getByText("How Cider Makers Reinvented an Industry").first(),
   ).toBeVisible();
   await expect(page).toHaveURL(`/?id=${FREE_ID}`);
 });
@@ -134,4 +140,10 @@ test("a News+ exclusive explains itself without a reader view", async ({
   await expect(
     page.getByRole("button", { name: /read transcript/i }),
   ).toBeHidden();
+
+  // With no publisher site, other outlets' coverage is the only way in —
+  // so the row still shows.
+  await expect(
+    page.getByText(/other outlets covering this story/i),
+  ).toBeVisible();
 });

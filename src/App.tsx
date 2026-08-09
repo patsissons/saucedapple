@@ -5,6 +5,7 @@ import { PageActions } from "@/components/page-actions";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArticleCard } from "@/components/article-card";
 import { ReaderView } from "@/components/reader-view";
+import { RelatedCoverage } from "@/components/related-coverage";
 import { UrlForm } from "@/components/url-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -67,14 +68,13 @@ export default function App() {
         {state.status === "resolved" && (
           <div className="flex w-full flex-col gap-4">
             <ArticleCard article={state.article} />
+            {state.article.canonicalUrl && <AltLinks article={state.article} />}
+            <RelatedCoverage appleNewsUrl={state.article.appleNewsUrl} />
             {state.article.canonicalUrl && (
-              <>
-                <AltLinks article={state.article} />
-                <ReaderView
-                  appleNewsUrl={state.article.appleNewsUrl}
-                  canonicalUrl={state.article.canonicalUrl}
-                />
-              </>
+              <ReaderView
+                appleNewsUrl={state.article.appleNewsUrl}
+                canonicalUrl={state.article.canonicalUrl}
+              />
             )}
           </div>
         )}

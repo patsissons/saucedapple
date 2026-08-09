@@ -10,7 +10,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { RelatedCoverage } from "@/components/related-coverage";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Source = "publisher" | "wayback" | "reader";
@@ -164,7 +163,6 @@ export function ReaderView({
                 </p>
               </div>
             )}
-            <RelatedCoverage appleNewsUrl={appleNewsUrl} />
           </div>
         )}
         {state.status === "loaded" && (

@@ -3,9 +3,9 @@ import { Newspaper } from "lucide-react";
 import type { RelatedOutlet } from "../../shared/api";
 import { fetchRelated } from "@/lib/api";
 
-// Shown when no transcript could be extracted. Roughly half of all articles
-// can't be transcribed by any free route, so the goal here is to end somewhere
-// useful — "these outlets also covered it" — instead of a dead end.
+// Always shown for a resolved article (when coverage exists), including
+// Apple News+ exclusives with no publisher site — for those, other outlets'
+// coverage is often the only free way into the story.
 export function RelatedCoverage({ appleNewsUrl }: { appleNewsUrl: string }) {
   const [outlets, setOutlets] = useState<RelatedOutlet[] | null>(null);
 
@@ -25,7 +25,7 @@ export function RelatedCoverage({ appleNewsUrl }: { appleNewsUrl: string }) {
   if (!outlets || outlets.length === 0) return null;
 
   return (
-    <div className="mt-4">
+    <div className="w-full">
       <p className="text-muted-foreground mb-2 flex items-center gap-1.5 text-sm">
         <Newspaper className="size-4" />
         Other outlets covering this story
